@@ -1,0 +1,128 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --background: 222 84% 5%; /* #0F172A */
+  --foreground: 210 40% 98%; /* #F8FAFC */
+  --muted: 217 33% 17%; /* #1E293B */
+  --muted-foreground: 215 20% 65%; /* #94A3B8 */
+  --popover: 222 84% 5%; /* #0F172A */
+  --popover-foreground: 210 40% 98%; /* #F8FAFC */
+  --card: 217 33% 17%; /* #1E293B */
+  --card-foreground: 210 40% 98%; /* #F8FAFC */
+  --border: 215 28% 32%; /* #334155 */
+  --input: 215 28% 32%; /* #334155 */
+  --primary: 217 91% 60%; /* #1E40AF */
+  --primary-foreground: 210 40% 98%; /* #F8FAFC */
+  --secondary: 215 28% 32%; /* #334155 */
+  --secondary-foreground: 210 40% 98%; /* #F8FAFC */
+  --accent: 215 28% 32%; /* #334155 */
+  --accent-foreground: 210 40% 98%; /* #F8FAFC */
+  --destructive: 0 84% 60%; /* #DC2626 */
+  --destructive-foreground: 210 40% 98%; /* #F8FAFC */
+  --ring: 217 91% 60%; /* #1E40AF */
+  --radius: 0.5rem;
+
+  /* Custom crypto colors */
+  --crypto-green: 158 64% 52%; /* #059669 */
+  --crypto-red: 0 84% 60%; /* #DC2626 */
+  --crypto-yellow: 45 93% 47%; /* #F59E0B */
+  --crypto-blue: 217 91% 60%; /* #1E40AF */
+  
+  /* Sidebar colors */
+  --sidebar-background: 217 33% 17%; /* #1E293B */
+  --sidebar-foreground: 210 40% 98%; /* #F8FAFC */
+  --sidebar-primary: 217 91% 60%; /* #1E40AF */
+  --sidebar-primary-foreground: 210 40% 98%; /* #F8FAFC */
+  --sidebar-accent: 215 28% 32%; /* #334155 */
+  --sidebar-accent-foreground: 210 40% 98%; /* #F8FAFC */
+  --sidebar-border: 215 28% 32%; /* #334155 */
+  --sidebar-ring: 217 91% 60%; /* #1E40AF */
+}
+
+.dark {
+  --background: 222 84% 5%; /* #0F172A */
+  --foreground: 210 40% 98%; /* #F8FAFC */
+  --muted: 217 33% 17%; /* #1E293B */
+  --muted-foreground: 215 20% 65%; /* #94A3B8 */
+  --popover: 222 84% 5%; /* #0F172A */
+  --popover-foreground: 210 40% 98%; /* #F8FAFC */
+  --card: 217 33% 17%; /* #1E293B */
+  --card-foreground: 210 40% 98%; /* #F8FAFC */
+  --border: 215 28% 32%; /* #334155 */
+  --input: 215 28% 32%; /* #334155 */
+  --primary: 217 91% 60%; /* #1E40AF */
+  --primary-foreground: 210 40% 98%; /* #F8FAFC */
+  --secondary: 215 28% 32%; /* #334155 */
+  --secondary-foreground: 210 40% 98%; /* #F8FAFC */
+  --accent: 215 28% 32%; /* #334155 */
+  --accent-foreground: 210 40% 98%; /* #F8FAFC */
+  --destructive: 0 84% 60%; /* #DC2626 */
+  --destructive-foreground: 210 40% 98%; /* #F8FAFC */
+  --ring: 217 91% 60%; /* #1E40AF */
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground font-sans antialiased;
+  }
+}
+
+@layer components {
+  .crypto-green {
+    color: hsl(var(--crypto-green));
+  }
+  
+  .crypto-red {
+    color: hsl(var(--crypto-red));
+  }
+  
+  .crypto-yellow {
+    color: hsl(var(--crypto-yellow));
+  }
+  
+  .crypto-blue {
+    color: hsl(var(--crypto-blue));
+  }
+
+  .bg-crypto-green {
+    background-color: hsl(var(--crypto-green));
+  }
+  
+  .bg-crypto-red {
+    background-color: hsl(var(--crypto-red));
+  }
+  
+  .bg-crypto-yellow {
+    background-color: hsl(var(--crypto-yellow));
+  }
+  
+  .bg-crypto-blue {
+    background-color: hsl(var(--crypto-blue));
+  }
+
+  .text-crypto-green {
+    color: hsl(var(--crypto-green));
+  }
+  
+  .text-crypto-red {
+    color: hsl(var(--crypto-red));
+  }
+  
+  .text-crypto-yellow {
+    color: hsl(var(--crypto-yellow));
+  }
+  
+  .text-crypto-blue {
+    color: hsl(var(--crypto-blue));
+  }
+
+  .font-mono {
+    font-family: 'Fira Code', monospace;
+  }
+}
