@@ -1,7 +1,8 @@
 import type { InsertMarketData } from "@shared/schema";
 
 const COINGECKO_API_URL = 'https://api.coingecko.com/api/v3';
-const COINAPI_KEY = process.env.COINAPI_KEY || import.meta.env.VITE_COINAPI_KEY;
+const COINAPI_KEY = typeof process !== 'undefined' ? process.env.COINAPI_KEY : 
+  (typeof import.meta !== 'undefined' && import.meta.env ? import.meta.env.VITE_COINAPI_KEY : undefined);
 
 // Symbol mapping for CoinGecko
 const symbolMap: Record<string, string> = {

@@ -88,7 +88,7 @@ export class MemStorage implements IStorage {
   }
 
   private async initializeDefaultExchanges() {
-    const defaultExchanges = [
+    const defaultExchanges: InsertExchange[] = [
       { name: "binance", displayName: "Binance", isConnected: true, sandboxMode: true, supportedAccountTypes: ["spot", "futures", "margin"] },
       { name: "coinbase", displayName: "Coinbase", isConnected: true, sandboxMode: true, supportedAccountTypes: ["spot"] },
       { name: "kraken", displayName: "Kraken", isConnected: true, sandboxMode: true, supportedAccountTypes: ["spot", "futures", "margin"] },
@@ -116,6 +116,11 @@ export class MemStorage implements IStorage {
       ...insertExchange,
       id,
       createdAt: new Date(),
+      isConnected: insertExchange.isConnected ?? false,
+      apiKey: insertExchange.apiKey ?? null,
+      apiSecret: insertExchange.apiSecret ?? null,
+      sandboxMode: insertExchange.sandboxMode ?? true,
+      supportedAccountTypes: Array.isArray(insertExchange.supportedAccountTypes) ? insertExchange.supportedAccountTypes : ["spot"],
     };
     this.exchanges.set(id, exchange);
     return exchange;
@@ -169,6 +174,10 @@ export class MemStorage implements IStorage {
       id,
       createdAt: new Date(),
       updatedAt: new Date(),
+      markPrice: insertPosition.markPrice ?? null,
+      unrealizedPnl: insertPosition.unrealizedPnl ?? null,
+      realizedPnl: insertPosition.realizedPnl ?? "0",
+      isActive: insertPosition.isActive ?? true,
     };
     this.positions.set(id, position);
     return position;
@@ -209,7 +218,7 @@ export class MemStorage implements IStorage {
 
   private async enrichAlertsWithTargetInfo(alerts: Alert[]): Promise<AlertWithTarget[]> {
     return alerts.map(alert => {
-      let targetName = alert.targetId;
+      let targetName: string | undefined = alert.targetId || undefined;
       let exchange: Exchange | undefined;
 
       if (alert.targetType === "position" && alert.targetId) {
@@ -234,6 +243,11 @@ export class MemStorage implements IStorage {
       ...insertAlert,
       id,
       createdAt: new Date(),
+      triggeredAt: null,
+      targetId: insertAlert.targetId ?? null,
+      currentValue: insertAlert.currentValue ?? null,
+      isTriggered: insertAlert.isTriggered ?? false,
+      isActive: insertAlert.isActive ?? true,
     };
     this.alerts.set(id, alert);
     return alert;
@@ -280,6 +294,11 @@ export class MemStorage implements IStorage {
       ...insertOrder,
       id,
       createdAt: new Date(),
+      filledAt: null,
+      price: insertOrder.price ?? null,
+      status: insertOrder.status ?? "pending",
+      externalOrderId: insertOrder.externalOrderId ?? null,
+      errorMessage: insertOrder.errorMessage ?? null,
     };
     this.orders.set(id, order);
     return order;
@@ -312,6 +331,9 @@ export class MemStorage implements IStorage {
       ...data,
       id: existing?.id || Math.floor(Math.random() * 10000),
       lastUpdated: new Date(),
+      change24h: data.change24h ?? null,
+      changePercent24h: data.changePercent24h ?? null,
+      volume24h: data.volume24h ?? null,
     };
     this.marketData.set(data.symbol, marketData);
     return marketData;
