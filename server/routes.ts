@@ -5,6 +5,7 @@ import { storage } from "./storage";
 import { insertPositionSchema, insertAlertSchema, insertOrderSchema } from "@shared/schema";
 import { binanceAPI } from "./exchanges/binance-api";
 import { bybitAPI } from "./exchanges/bybit-api";
+import { kucoinAPI } from "./exchanges/kucoin-api";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Portfolio endpoints
@@ -228,26 +229,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
     });
   });
 
-  // Periodic market data updates
+  // Periodic market data updates (currently using sample data due to geographic restrictions)
   setInterval(async () => {
     try {
-      // Fetch fresh market data from exchanges
+      // Fetch real market data from KuCoin API
       const symbols = ['BTC/USDT', 'ETH/USDT', 'SOL/USDT', 'ADA/USDT'];
       
-      // Try Binance first, then Bybit as fallback
       for (const symbol of symbols) {
         try {
-          let marketData;
-          try {
-            marketData = await binanceAPI.getMarketData(symbol.replace('/', ''));
-          } catch (binanceError) {
-            console.log(`Binance failed for ${symbol}, trying Bybit...`);
-            marketData = await bybitAPI.getMarketData(symbol);
-          }
-          
-          if (marketData) {
-            await storage.upsertMarketData(marketData);
-          }
+          const marketData = await kucoinAPI.getMarketData(symbol);
+          await storage.upsertMarketData(marketData);
         } catch (error) {
           console.error(`Failed to update market data for ${symbol}:`, error);
         }

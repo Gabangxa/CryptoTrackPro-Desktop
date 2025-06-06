@@ -1,46 +1,29 @@
-import { binanceAPI } from './exchanges/binance-api';
-import { bybitAPI } from './exchanges/bybit-api';
+import { kucoinAPI } from './exchanges/kucoin-api';
 
 async function testAPIs() {
-  console.log('Testing API connections...');
+  console.log('Testing KuCoin API connections...');
   
-  // Test Binance public endpoint (no auth required)
+  // Test KuCoin public endpoint (no auth required)
   try {
-    console.log('Testing Binance public API...');
-    const binancePrice = await fetch('https://api.binance.com/api/v3/ticker/price?symbol=BTCUSDT');
-    const binanceData = await binancePrice.json();
-    console.log('✓ Binance public API works:', binanceData);
-  } catch (error) {
-    console.log('✗ Binance public API failed:', error);
+    console.log('Testing KuCoin public API...');
+    const kucoinPrice = await fetch('https://api.kucoin.com/api/v1/market/orderbook/level1?symbol=BTC-USDT');
+    const kucoinData = await kucoinPrice.json();
+    console.log('✓ KuCoin public API works:', kucoinData);
+    
+    // Test market data method
+    const marketData = await kucoinAPI.getMarketData('BTC/USDT');
+    console.log('✓ KuCoin market data method works:', marketData);
+  } catch (error: any) {
+    console.log('✗ KuCoin public API failed:', error.message);
   }
 
-  // Test Bybit public endpoint (no auth required)
+  // Test authenticated endpoints if credentials are available
   try {
-    console.log('Testing Bybit public API...');
-    const bybitPrice = await fetch('https://api.bybit.com/v5/market/tickers?category=spot&symbol=BTCUSDT');
-    const bybitData = await bybitPrice.json();
-    console.log('✓ Bybit public API works:', bybitData);
-  } catch (error) {
-    console.log('✗ Bybit public API failed:', error);
-  }
-
-  // Test authenticated endpoints
-  console.log('\nTesting authenticated endpoints...');
-  
-  try {
-    console.log('Testing Binance authenticated API...');
-    const binanceAccount = await binanceAPI.getAccountInfo();
-    console.log('✓ Binance authenticated API works');
-  } catch (error) {
-    console.log('✗ Binance authenticated API failed:', error.message);
-  }
-
-  try {
-    console.log('Testing Bybit authenticated API...');
-    const bybitAccount = await bybitAPI.getAccountBalance();
-    console.log('✓ Bybit authenticated API works');
-  } catch (error) {
-    console.log('✗ Bybit authenticated API failed:', error.message);
+    console.log('Testing KuCoin authenticated API...');
+    const kucoinAccount = await kucoinAPI.getAccountInfo();
+    console.log('✓ KuCoin authenticated API works');
+  } catch (error: any) {
+    console.log('✗ KuCoin authenticated API failed:', error.message);
   }
 }
 
