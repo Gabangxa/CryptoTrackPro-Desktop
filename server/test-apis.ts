@@ -20,6 +20,10 @@ async function testAPIs() {
   // Test authenticated endpoints if credentials are available
   try {
     console.log('Testing KuCoin authenticated API...');
+    console.log('API Key available:', !!process.env.KUCOIN_API_KEY);
+    console.log('Secret Key available:', !!process.env.KUCOIN_SECRET_KEY);
+    console.log('Passphrase available:', !!process.env.KUCOIN_PASSPHRASE);
+    
     const kucoinAccount = await kucoinAPI.getAccountInfo();
     console.log('✓ KuCoin authenticated API works');
   } catch (error: any) {

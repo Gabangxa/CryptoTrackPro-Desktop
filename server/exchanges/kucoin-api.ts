@@ -8,7 +8,7 @@ export class KuCoinAPI {
   private passphrase = process.env.KUCOIN_PASSPHRASE || '';
 
   private createSignature(timestamp: string, method: string, endpoint: string, body: string = ''): string {
-    const message = timestamp + method + endpoint + body;
+    const message = timestamp + method.toUpperCase() + endpoint + body;
     return crypto.createHmac('sha256', this.secretKey).update(message).digest('base64');
   }
 
@@ -34,13 +34,23 @@ export class KuCoinAPI {
 
     if (signed && this.apiKey && this.secretKey && this.passphrase) {
       const timestamp = Date.now().toString();
-      const signature = this.createSignature(timestamp, method, url.pathname + url.search, body);
+      const requestPath = url.pathname + url.search;
+      const signature = this.createSignature(timestamp, method, requestPath, body);
       
       headers['KC-API-KEY'] = this.apiKey;
       headers['KC-API-SIGN'] = signature;
       headers['KC-API-TIMESTAMP'] = timestamp;
       headers['KC-API-PASSPHRASE'] = crypto.createHmac('sha256', this.secretKey).update(this.passphrase).digest('base64');
       headers['KC-API-KEY-VERSION'] = '2';
+      
+      console.log('KuCoin Auth Debug:', {
+        timestamp,
+        method,
+        requestPath,
+        hasApiKey: !!this.apiKey,
+        hasSecretKey: !!this.secretKey,
+        hasPassphrase: !!this.passphrase
+      });
     }
 
     const response = await fetch(url.toString(), {
