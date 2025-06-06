@@ -91,10 +91,12 @@ export class MemStorage implements IStorage {
     this.alerts = new Map();
     this.orders = new Map();
     this.marketData = new Map();
+    this.exchangePrices = new Map();
     this.currentExchangeId = 1;
     this.currentPositionId = 1;
     this.currentAlertId = 1;
     this.currentOrderId = 1;
+    this.currentExchangePriceId = 1;
 
     // Initialize with default exchanges and sample data
     this.initializeDefaultExchanges();
@@ -173,7 +175,7 @@ export class MemStorage implements IStorage {
       apiKey: insertExchange.apiKey ?? null,
       apiSecret: insertExchange.apiSecret ?? null,
       sandboxMode: insertExchange.sandboxMode ?? true,
-      supportedAccountTypes: Array.isArray(insertExchange.supportedAccountTypes) ? insertExchange.supportedAccountTypes : ["spot"],
+      supportedAccountTypes: insertExchange.supportedAccountTypes || ["spot"],
     };
     this.exchanges.set(id, exchange);
     return exchange;
@@ -442,6 +444,81 @@ export class MemStorage implements IStorage {
       activeAlerts: activeAlerts.length,
       triggeredAlerts: triggeredAlerts.length,
     };
+  }
+
+  // Exchange Prices
+  async getExchangePrices(): Promise<ExchangePrice[]> {
+    return Array.from(this.exchangePrices.values());
+  }
+
+  async getExchangePricesBySymbol(symbol: string): Promise<ExchangePrice[]> {
+    return Array.from(this.exchangePrices.values()).filter(ep => ep.symbol === symbol);
+  }
+
+  async upsertExchangePrice(data: InsertExchangePrice): Promise<ExchangePrice> {
+    const existing = Array.from(this.exchangePrices.values())
+      .find(ep => ep.exchangeId === data.exchangeId && ep.symbol === data.symbol);
+
+    if (existing) {
+      const updated: ExchangePrice = {
+        ...existing,
+        ...data,
+        lastUpdated: new Date(),
+      };
+      this.exchangePrices.set(existing.id, updated);
+      return updated;
+    } else {
+      const id = this.currentExchangePriceId++;
+      const exchangePrice: ExchangePrice = {
+        ...data,
+        id,
+        volume24h: data.volume24h || null,
+        lastUpdated: new Date(),
+      };
+      this.exchangePrices.set(id, exchangePrice);
+      return exchangePrice;
+    }
+  }
+
+  async deleteExchangePricesForExchange(exchangeId: number): Promise<boolean> {
+    const toDelete = Array.from(this.exchangePrices.entries())
+      .filter(([_, ep]) => ep.exchangeId === exchangeId)
+      .map(([id, _]) => id);
+    
+    toDelete.forEach(id => this.exchangePrices.delete(id));
+    return toDelete.length > 0;
+  }
+
+  async getMarketDataWithBestPrices(): Promise<MarketDataWithBestPrice[]> {
+    const marketDataArray = Array.from(this.marketData.values());
+    const result: MarketDataWithBestPrice[] = [];
+
+    for (const marketData of marketDataArray) {
+      const exchangePrices = await this.getExchangePricesBySymbol(marketData.symbol);
+      
+      let bestPrice = marketData.price;
+      let bestExchange = "Aggregated";
+      
+      if (exchangePrices.length > 0) {
+        const sortedPrices = exchangePrices.sort((a, b) => 
+          parseFloat(a.price) - parseFloat(b.price)
+        );
+        const bestPriceData = sortedPrices[0];
+        bestPrice = bestPriceData.price;
+        
+        const exchange = this.exchanges.get(bestPriceData.exchangeId);
+        bestExchange = exchange?.displayName || `Exchange ${bestPriceData.exchangeId}`;
+      }
+
+      result.push({
+        ...marketData,
+        exchangePrices,
+        bestPrice,
+        bestExchange,
+      });
+    }
+
+    return result;
   }
 }
 

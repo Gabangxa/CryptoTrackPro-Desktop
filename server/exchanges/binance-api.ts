@@ -2,13 +2,22 @@ import crypto from 'crypto';
 import type { InsertMarketData, InsertOrder } from '@shared/schema';
 
 const BINANCE_API_BASE = 'https://api.binance.com';
-const BINANCE_API_KEY = process.env.BINANCE_API_KEY;
-const BINANCE_SECRET_KEY = process.env.BINANCE_SECRET_KEY;
+const BINANCE_TESTNET_BASE = 'https://testnet.binance.vision';
 
 export class BinanceAPI {
+  private apiKey: string;
+  private secretKey: string;
+  private baseUrl: string;
+
+  constructor(apiKey?: string, secretKey?: string, sandboxMode = false) {
+    this.apiKey = apiKey || process.env.BINANCE_API_KEY || '';
+    this.secretKey = secretKey || process.env.BINANCE_SECRET_KEY || '';
+    this.baseUrl = sandboxMode ? BINANCE_TESTNET_BASE : BINANCE_API_BASE;
+  }
+
   private createSignature(queryString: string): string {
     return crypto
-      .createHmac('sha256', BINANCE_SECRET_KEY!)
+      .createHmac('sha256', this.secretKey)
       .update(queryString)
       .digest('hex');
   }
