@@ -1,0 +1,116 @@
+import crypto from 'crypto';
+import type { InsertMarketData, InsertOrder } from '@shared/schema';
+
+const BINANCE_API_BASE = 'https://api.binance.com';
+const BINANCE_API_KEY = process.env.BINANCE_API_KEY;
+const BINANCE_SECRET_KEY = process.env.BINANCE_SECRET_KEY;
+
+export class BinanceAPI {
+  private createSignature(queryString: string): string {
+    return crypto
+      .createHmac('sha256', BINANCE_SECRET_KEY!)
+      .update(queryString)
+      .digest('hex');
+  }
+
+  private async makeRequest(endpoint: string, params: Record<string, any> = {}, method: 'GET' | 'POST' = 'GET', signed = false) {
+    const queryString = new URLSearchParams(params).toString();
+    let url = `${BINANCE_API_BASE}${endpoint}`;
+    
+    if (signed) {
+      params.timestamp = Date.now();
+      const signedQueryString = new URLSearchParams(params).toString();
+      const signature = this.createSignature(signedQueryString);
+      url += `?${signedQueryString}&signature=${signature}`;
+    } else if (queryString) {
+      url += `?${queryString}`;
+    }
+
+    const headers: Record<string, string> = {};
+    if (BINANCE_API_KEY) {
+      headers['X-MBX-APIKEY'] = BINANCE_API_KEY;
+    }
+
+    const response = await fetch(url, {
+      method,
+      headers,
+    });
+
+    if (!response.ok) {
+      throw new Error(`Binance API error: ${response.status} ${response.statusText}`);
+    }
+
+    return response.json();
+  }
+
+  async getTickerPrice(symbol: string): Promise<{ symbol: string; price: string }> {
+    return this.makeRequest('/api/v3/ticker/price', { symbol });
+  }
+
+  async getTicker24hr(symbol: string): Promise<any> {
+    return this.makeRequest('/api/v3/ticker/24hr', { symbol });
+  }
+
+  async getMarketData(symbol: string): Promise<InsertMarketData> {
+    const ticker = await this.getTicker24hr(symbol);
+    
+    return {
+      symbol: `${ticker.symbol.slice(0, -4)}/${ticker.symbol.slice(-4)}`, // Convert BTCUSDT to BTC/USDT
+      baseAsset: ticker.symbol.slice(0, -4),
+      quoteAsset: ticker.symbol.slice(-4),
+      price: ticker.lastPrice,
+      change24h: ticker.priceChange,
+      changePercent24h: ticker.priceChangePercent,
+      volume24h: ticker.volume,
+    };
+  }
+
+  async getAccountInfo(): Promise<any> {
+    return this.makeRequest('/api/v3/account', {}, 'GET', true);
+  }
+
+  async getSpotBalances(): Promise<any[]> {
+    const account = await this.getAccountInfo();
+    return account.balances.filter((balance: any) => parseFloat(balance.free) > 0 || parseFloat(balance.locked) > 0);
+  }
+
+  async getFuturesPositions(): Promise<any[]> {
+    try {
+      return this.makeRequest('/fapi/v2/positionRisk', {}, 'GET', true);
+    } catch (error) {
+      console.error('Error fetching futures positions:', error);
+      return [];
+    }
+  }
+
+  async placeSpotOrder(order: InsertOrder): Promise<any> {
+    const params = {
+      symbol: order.symbol.replace('/', ''),
+      side: order.side.toUpperCase(),
+      type: order.type.toUpperCase(),
+      quantity: order.quantity,
+    };
+
+    if (order.type === 'limit' && order.price) {
+      (params as any).price = order.price;
+      (params as any).timeInForce = 'GTC';
+    }
+
+    return this.makeRequest('/api/v3/order', params, 'POST', true);
+  }
+
+  async getMultipleMarketData(symbols: string[]): Promise<InsertMarketData[]> {
+    const binanceSymbols = symbols.map(s => s.replace('/', ''));
+    const results = await Promise.allSettled(
+      binanceSymbols.map(symbol => this.getMarketData(symbol))
+    );
+
+    return results
+      .filter((result): result is PromiseFulfilledResult<InsertMarketData> => 
+        result.status === 'fulfilled'
+      )
+      .map(result => result.value);
+  }
+}
+
+export const binanceAPI = new BinanceAPI();
