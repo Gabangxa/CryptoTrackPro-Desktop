@@ -2,14 +2,23 @@ import crypto from 'crypto';
 import type { InsertMarketData, InsertOrder } from '@shared/schema';
 
 const BYBIT_API_BASE = 'https://api.bybit.com';
-const BYBIT_API_KEY = process.env.BYBIT_API_KEY;
-const BYBIT_SECRET_KEY = process.env.BYBIT_SECRET_KEY;
+const BYBIT_TESTNET_BASE = 'https://api-testnet.bybit.com';
 
 export class BybitAPI {
+  private apiKey: string;
+  private secretKey: string;
+  private baseUrl: string;
+
+  constructor(apiKey?: string, secretKey?: string, sandboxMode = false) {
+    this.apiKey = apiKey || process.env.BYBIT_API_KEY || '';
+    this.secretKey = secretKey || process.env.BYBIT_SECRET_KEY || '';
+    this.baseUrl = sandboxMode ? BYBIT_TESTNET_BASE : BYBIT_API_BASE;
+  }
+
   private createSignature(timestamp: string, params: string): string {
-    const message = timestamp + BYBIT_API_KEY + '5000' + params;
+    const message = timestamp + this.apiKey + '5000' + params;
     return crypto
-      .createHmac('sha256', BYBIT_SECRET_KEY!)
+      .createHmac('sha256', this.secretKey)
       .update(message)
       .digest('hex');
   }
@@ -18,15 +27,15 @@ export class BybitAPI {
     const timestamp = Date.now().toString();
     const paramString = JSON.stringify(params);
     
-    let url = `${BYBIT_API_BASE}${endpoint}`;
+    let url = `${this.baseUrl}${endpoint}`;
     
     const headers: Record<string, string> = {
       'Content-Type': 'application/json',
     };
 
-    if (signed && BYBIT_API_KEY && BYBIT_SECRET_KEY) {
+    if (signed && this.apiKey && this.secretKey) {
       const signature = this.createSignature(timestamp, paramString);
-      headers['X-BAPI-API-KEY'] = BYBIT_API_KEY;
+      headers['X-BAPI-API-KEY'] = this.apiKey;
       headers['X-BAPI-SIGN'] = signature;
       headers['X-BAPI-TIMESTAMP'] = timestamp;
       headers['X-BAPI-RECV-WINDOW'] = '5000';

@@ -1,11 +1,13 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { WebSocketServer, WebSocket } from "ws";
+import { z } from "zod";
 import { storage } from "./storage";
 import { insertPositionSchema, insertAlertSchema, insertOrderSchema } from "@shared/schema";
 import { binanceAPI } from "./exchanges/binance-api";
 import { bybitAPI } from "./exchanges/bybit-api";
 import { kucoinAPI } from "./exchanges/kucoin-api";
+import { apiManager } from "./api-manager";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Portfolio endpoints
@@ -174,6 +176,90 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // API Credential Management
+  const credentialsSchema = z.object({
+    apiKey: z.string().min(1, 'API Key is required'),
+    apiSecret: z.string().min(1, 'API Secret is required'),
+    passphrase: z.string().optional(),
+    sandboxMode: z.boolean().default(false),
+  });
+
+  app.post("/api/exchanges/:id/credentials", async (req, res) => {
+    try {
+      const exchangeId = parseInt(req.params.id);
+      const credentials = credentialsSchema.parse(req.body);
+      
+      const success = await apiManager.updateExchangeCredentials(exchangeId, credentials);
+      
+      if (success) {
+        const exchange = await storage.getExchange(exchangeId);
+        res.json({ success: true, exchange });
+      } else {
+        res.status(404).json({ error: 'Exchange not found' });
+      }
+    } catch (error) {
+      console.error('Error updating credentials:', error);
+      res.status(400).json({ error: error instanceof Error ? error.message : 'Invalid credentials' });
+    }
+  });
+
+  app.delete("/api/exchanges/:id/credentials", async (req, res) => {
+    try {
+      const exchangeId = parseInt(req.params.id);
+      
+      const success = await apiManager.removeExchangeCredentials(exchangeId);
+      
+      if (success) {
+        const exchange = await storage.getExchange(exchangeId);
+        res.json({ success: true, exchange });
+      } else {
+        res.status(404).json({ error: 'Exchange not found' });
+      }
+    } catch (error) {
+      console.error('Error removing credentials:', error);
+      res.status(500).json({ error: 'Failed to remove credentials' });
+    }
+  });
+
+  app.post("/api/exchanges/:id/test", async (req, res) => {
+    try {
+      const exchangeId = parseInt(req.params.id);
+      
+      const isConnected = await apiManager.testExchangeConnection(exchangeId);
+      
+      res.json({ connected: isConnected });
+    } catch (error) {
+      console.error('Error testing connection:', error);
+      res.json({ connected: false, error: error instanceof Error ? error.message : 'Connection failed' });
+    }
+  });
+
+  app.get("/api/exchanges/:id/balances", async (req, res) => {
+    try {
+      const exchangeId = parseInt(req.params.id);
+      
+      const balances = await apiManager.getExchangeBalances(exchangeId);
+      
+      res.json(balances);
+    } catch (error) {
+      console.error('Error fetching balances:', error);
+      res.status(500).json({ error: 'Failed to fetch balances' });
+    }
+  });
+
+  app.get("/api/exchanges/:id/positions", async (req, res) => {
+    try {
+      const exchangeId = parseInt(req.params.id);
+      
+      const positions = await apiManager.getExchangePositions(exchangeId);
+      
+      res.json(positions);
+    } catch (error) {
+      console.error('Error fetching positions:', error);
+      res.status(500).json({ error: 'Failed to fetch positions' });
+    }
+  });
+
   // Market data endpoints
   app.get("/api/market-data", async (req, res) => {
     try {
@@ -181,6 +267,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(marketData);
     } catch (error) {
       res.status(500).json({ error: "Failed to fetch market data" });
+    }
+  });
+
+  app.get("/api/market-data/best-prices", async (req, res) => {
+    try {
+      const marketDataWithBestPrices = await storage.getMarketDataWithBestPrices();
+      res.json(marketDataWithBestPrices);
+    } catch (error) {
+      console.error('Error fetching best prices:', error);
+      res.status(500).json({ error: 'Failed to fetch market data' });
+    }
+  });
+
+  app.post("/api/market-data/fetch", async (req, res) => {
+    try {
+      const { symbols } = req.body;
+      
+      if (!Array.isArray(symbols)) {
+        return res.status(400).json({ error: 'Symbols must be an array' });
+      }
+      
+      await apiManager.fetchAllMarketData(symbols);
+      
+      res.json({ success: true, message: 'Market data fetched successfully' });
+    } catch (error) {
+      console.error('Error fetching market data:', error);
+      res.status(500).json({ error: 'Failed to fetch market data' });
     }
   });
 
@@ -194,6 +307,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(data);
     } catch (error) {
       res.status(500).json({ error: "Failed to fetch market data" });
+    }
+  });
+
+  app.get("/api/exchange-prices/:symbol", async (req, res) => {
+    try {
+      const symbol = req.params.symbol;
+      const exchangePrices = await storage.getExchangePricesBySymbol(symbol);
+      
+      res.json(exchangePrices);
+    } catch (error) {
+      console.error('Error fetching exchange prices:', error);
+      res.status(500).json({ error: 'Failed to fetch exchange prices' });
     }
   });
 

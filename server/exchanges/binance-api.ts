@@ -24,7 +24,7 @@ export class BinanceAPI {
 
   private async makeRequest(endpoint: string, params: Record<string, any> = {}, method: 'GET' | 'POST' = 'GET', signed = false) {
     const queryString = new URLSearchParams(params).toString();
-    let url = `${BINANCE_API_BASE}${endpoint}`;
+    let url = `${this.baseUrl}${endpoint}`;
     
     if (signed) {
       params.timestamp = Date.now();
@@ -36,8 +36,8 @@ export class BinanceAPI {
     }
 
     const headers: Record<string, string> = {};
-    if (BINANCE_API_KEY) {
-      headers['X-MBX-APIKEY'] = BINANCE_API_KEY;
+    if (this.apiKey) {
+      headers['X-MBX-APIKEY'] = this.apiKey;
     }
 
     const response = await fetch(url, {

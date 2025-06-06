@@ -2,10 +2,17 @@ import crypto from 'crypto';
 import { InsertMarketData, InsertOrder } from '../../shared/schema';
 
 export class KuCoinAPI {
-  private baseUrl = 'https://api.kucoin.com';
-  private apiKey = process.env.KUCOIN_API_KEY || '';
-  private secretKey = process.env.KUCOIN_SECRET_KEY || '';
-  private passphrase = process.env.KUCOIN_PASSPHRASE || '';
+  private baseUrl: string;
+  private apiKey: string;
+  private secretKey: string;
+  private passphrase: string;
+
+  constructor(apiKey?: string, secretKey?: string, passphrase?: string, sandboxMode = false) {
+    this.baseUrl = sandboxMode ? 'https://openapi-sandbox.kucoin.com' : 'https://api.kucoin.com';
+    this.apiKey = apiKey || process.env.KUCOIN_API_KEY || '';
+    this.secretKey = secretKey || process.env.KUCOIN_SECRET_KEY || '';
+    this.passphrase = passphrase || process.env.KUCOIN_PASSPHRASE || '';
+  }
 
   private createSignature(timestamp: string, method: string, endpoint: string, body: string = ''): string {
     const message = timestamp + method.toUpperCase() + endpoint + body;
