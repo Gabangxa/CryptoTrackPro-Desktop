@@ -75,6 +75,15 @@ export const marketData = pgTable("market_data", {
   lastUpdated: timestamp("last_updated").defaultNow(),
 });
 
+export const exchangePrices = pgTable("exchange_prices", {
+  id: serial("id").primaryKey(),
+  exchangeId: integer("exchange_id").references(() => exchanges.id).notNull(),
+  symbol: text("symbol").notNull(),
+  price: decimal("price", { precision: 20, scale: 8 }).notNull(),
+  volume24h: decimal("volume_24h", { precision: 20, scale: 8 }),
+  lastUpdated: timestamp("last_updated").defaultNow(),
+});
+
 // Insert schemas
 export const insertExchangeSchema = createInsertSchema(exchanges).omit({
   id: true,
@@ -104,6 +113,11 @@ export const insertMarketDataSchema = createInsertSchema(marketData).omit({
   lastUpdated: true,
 });
 
+export const insertExchangePriceSchema = createInsertSchema(exchangePrices).omit({
+  id: true,
+  lastUpdated: true,
+});
+
 // Types
 export type Exchange = typeof exchanges.$inferSelect;
 export type InsertExchange = z.infer<typeof insertExchangeSchema>;
@@ -119,6 +133,9 @@ export type InsertOrder = z.infer<typeof insertOrderSchema>;
 
 export type MarketData = typeof marketData.$inferSelect;
 export type InsertMarketData = z.infer<typeof insertMarketDataSchema>;
+
+export type ExchangePrice = typeof exchangePrices.$inferSelect;
+export type InsertExchangePrice = z.infer<typeof insertExchangePriceSchema>;
 
 // Additional types for API responses
 export type PortfolioSummary = {
@@ -140,4 +157,10 @@ export type PositionWithExchange = Position & {
 export type AlertWithTarget = Alert & {
   targetName?: string;
   exchange?: Exchange;
+};
+
+export type MarketDataWithBestPrice = MarketData & {
+  exchangePrices: ExchangePrice[];
+  bestPrice: string;
+  bestExchange: string;
 };

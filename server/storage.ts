@@ -4,6 +4,7 @@ import {
   alerts, 
   orders, 
   marketData,
+  exchangePrices,
   type Exchange, 
   type InsertExchange,
   type Position,
@@ -14,6 +15,9 @@ import {
   type InsertOrder,
   type MarketData,
   type InsertMarketData,
+  type ExchangePrice,
+  type InsertExchangePrice,
+  type MarketDataWithBestPrice,
   type PortfolioSummary,
   type PositionWithExchange,
   type AlertWithTarget
@@ -54,8 +58,15 @@ export interface IStorage {
   // Market Data
   getMarketData(): Promise<MarketData[]>;
   getMarketDataBySymbol(symbol: string): Promise<MarketData | undefined>;
+  getMarketDataWithBestPrices(): Promise<MarketDataWithBestPrice[]>;
   upsertMarketData(data: InsertMarketData): Promise<MarketData>;
   updateMarketData(symbol: string, data: Partial<InsertMarketData>): Promise<MarketData | undefined>;
+
+  // Exchange Prices
+  getExchangePrices(): Promise<ExchangePrice[]>;
+  getExchangePricesBySymbol(symbol: string): Promise<ExchangePrice[]>;
+  upsertExchangePrice(data: InsertExchangePrice): Promise<ExchangePrice>;
+  deleteExchangePricesForExchange(exchangeId: number): Promise<boolean>;
 
   // Portfolio Analytics
   getPortfolioSummary(): Promise<PortfolioSummary>;
@@ -67,10 +78,12 @@ export class MemStorage implements IStorage {
   private alerts: Map<number, Alert>;
   private orders: Map<number, Order>;
   private marketData: Map<string, MarketData>;
+  private exchangePrices: Map<number, ExchangePrice>;
   private currentExchangeId: number;
   private currentPositionId: number;
   private currentAlertId: number;
   private currentOrderId: number;
+  private currentExchangePriceId: number;
 
   constructor() {
     this.exchanges = new Map();
