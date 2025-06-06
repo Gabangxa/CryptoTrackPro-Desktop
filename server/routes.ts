@@ -322,6 +322,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Initialize API manager with existing credentials
+  await apiManager.initialize();
+
   const httpServer = createServer(app);
 
   // WebSocket server for real-time updates
