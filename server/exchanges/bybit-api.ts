@@ -56,7 +56,8 @@ export class BybitAPI {
   }
 
   async getTickerPrice(symbol: string): Promise<any> {
-    return this.makeRequest('/v5/market/tickers', { category: 'spot', symbol });
+    // Use public endpoint for market data (no auth required)
+    return this.makeRequest('/v5/market/tickers', { category: 'spot', symbol }, 'GET', false);
   }
 
   async getMarketData(symbol: string): Promise<InsertMarketData> {

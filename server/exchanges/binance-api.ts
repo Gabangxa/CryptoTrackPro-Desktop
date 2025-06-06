@@ -52,7 +52,8 @@ export class BinanceAPI {
   }
 
   async getMarketData(symbol: string): Promise<InsertMarketData> {
-    const ticker = await this.getTicker24hr(symbol);
+    // Use public endpoint for market data (no auth required)
+    const ticker = await this.makeRequest('/api/v3/ticker/24hr', { symbol: symbol.replace('/', '') });
     
     return {
       symbol: `${ticker.symbol.slice(0, -4)}/${ticker.symbol.slice(-4)}`, // Convert BTCUSDT to BTC/USDT
