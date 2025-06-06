@@ -229,7 +229,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     });
   });
 
-  // Periodic market data updates (currently using sample data due to geographic restrictions)
+  // Periodic market data updates using KuCoin API
   setInterval(async () => {
     try {
       // Fetch real market data from KuCoin API

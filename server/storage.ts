@@ -90,10 +90,11 @@ export class MemStorage implements IStorage {
 
   private async initializeDefaultExchanges() {
     const defaultExchanges: InsertExchange[] = [
-      { name: "binance", displayName: "Binance", isConnected: true, sandboxMode: true, supportedAccountTypes: ["spot", "futures", "margin"] },
-      { name: "coinbase", displayName: "Coinbase", isConnected: true, sandboxMode: true, supportedAccountTypes: ["spot"] },
-      { name: "kraken", displayName: "Kraken", isConnected: true, sandboxMode: true, supportedAccountTypes: ["spot", "futures", "margin"] },
-      { name: "bybit", displayName: "Bybit", isConnected: true, sandboxMode: true, supportedAccountTypes: ["spot", "futures", "perpetual"] },
+      { name: "kucoin", displayName: "KuCoin", isConnected: true, sandboxMode: false, supportedAccountTypes: ["spot", "futures", "margin"] },
+      { name: "binance", displayName: "Binance", isConnected: false, sandboxMode: true, supportedAccountTypes: ["spot", "futures", "margin"] },
+      { name: "coinbase", displayName: "Coinbase", isConnected: false, sandboxMode: true, supportedAccountTypes: ["spot"] },
+      { name: "kraken", displayName: "Kraken", isConnected: false, sandboxMode: true, supportedAccountTypes: ["spot", "futures", "margin"] },
+      { name: "bybit", displayName: "Bybit", isConnected: false, sandboxMode: true, supportedAccountTypes: ["spot", "futures", "perpetual"] },
       { name: "okx", displayName: "OKX", isConnected: false, sandboxMode: true, supportedAccountTypes: ["spot", "futures", "perpetual", "margin"] },
     ];
 
