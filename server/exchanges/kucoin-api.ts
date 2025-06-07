@@ -10,7 +10,7 @@ export class KuCoinAPI {
   constructor(apiKey?: string, secretKey?: string, passphrase?: string, sandboxMode = false) {
     this.baseUrl = sandboxMode ? 'https://openapi-sandbox.kucoin.com' : 'https://api.kucoin.com';
     this.apiKey = apiKey || process.env.KUCOIN_API_KEY || '';
-    this.secretKey = secretKey || process.env.KUCOIN_SECRET_KEY || '';
+    this.secretKey = secretKey || process.env.KUCOIN_API_SECRET || '';
     this.passphrase = passphrase || process.env.KUCOIN_PASSPHRASE || '';
   }
 

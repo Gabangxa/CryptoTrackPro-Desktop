@@ -38,7 +38,9 @@ export class APIManager {
         break;
       case 'kucoin':
         if (!credentials.passphrase) throw new Error('KuCoin requires a passphrase');
-        this.kucoinInstances.set(exchangeId, new KuCoinAPI(credentials.apiKey, credentials.apiSecret, credentials.passphrase, credentials.sandboxMode));
+        const kucoinAPI = new KuCoinAPI(credentials.apiKey, credentials.apiSecret, credentials.passphrase, credentials.sandboxMode);
+        this.kucoinInstances.set(exchangeId, kucoinAPI);
+        console.log(`KuCoin API initialized for exchange ${exchangeId}, sandbox: ${credentials.sandboxMode}`);
         break;
       default:
         return false;
@@ -303,23 +305,43 @@ export class APIManager {
     const exchanges = await storage.getExchanges();
     
     for (const exchange of exchanges) {
-      if (exchange.isConnected && exchange.apiKey && exchange.apiSecret) {
+      if (exchange.isConnected || exchange.name.toLowerCase() === 'kucoin') {
         try {
-          const credentials: ExchangeCredentials = {
-            apiKey: exchange.apiKey,
-            apiSecret: exchange.apiSecret,
-            sandboxMode: exchange.sandboxMode || false,
-          };
+          let credentials: ExchangeCredentials | null = null;
 
-          // For KuCoin, we need the passphrase from environment or user input
+          // For KuCoin, check environment variables first
           if (exchange.name.toLowerCase() === 'kucoin') {
+            const apiKey = process.env.KUCOIN_API_KEY;
+            const apiSecret = process.env.KUCOIN_API_SECRET;
             const passphrase = process.env.KUCOIN_PASSPHRASE;
-            if (passphrase) {
-              credentials.passphrase = passphrase;
-              await this.updateExchangeCredentials(exchange.id, credentials);
+
+            if (apiKey && apiSecret && passphrase) {
+              credentials = {
+                apiKey,
+                apiSecret,
+                passphrase,
+                sandboxMode: false, // Always use production for KuCoin
+              };
+              
+              // Update exchange to be connected
+              await storage.updateExchange(exchange.id, { 
+                isConnected: true, 
+                sandboxMode: false,
+                apiKey,
+                apiSecret 
+              });
             }
-          } else {
+          } else if (exchange.apiKey && exchange.apiSecret) {
+            credentials = {
+              apiKey: exchange.apiKey,
+              apiSecret: exchange.apiSecret,
+              sandboxMode: exchange.sandboxMode || false,
+            };
+          }
+
+          if (credentials) {
             await this.updateExchangeCredentials(exchange.id, credentials);
+            console.log(`Initialized ${exchange.displayName} API connection`);
           }
         } catch (error) {
           console.error(`Failed to initialize ${exchange.displayName}:`, error);
