@@ -146,8 +146,44 @@ export class KuCoinAPI {
   }
 
   async getMultipleMarketData(symbols: string[]): Promise<InsertMarketData[]> {
-    const marketDataPromises = symbols.map(symbol => this.getMarketData(symbol));
-    return Promise.all(marketDataPromises);
+    try {
+      // Use the bulk all tickers endpoint for better performance
+      const allTickers = await this.makeRequest('/api/v1/market/allTickers');
+      const allStats = await this.makeRequest('/api/v1/market/stats');
+      
+      const results: InsertMarketData[] = [];
+      
+      for (const symbol of symbols) {
+        const kucoinSymbol = symbol.replace('/', '-');
+        const ticker = allTickers.ticker?.find((t: any) => t.symbol === kucoinSymbol);
+        const stats = allStats?.find((s: any) => s.symbol === kucoinSymbol);
+        
+        if (ticker && stats) {
+          results.push({
+            symbol,
+            baseAsset: symbol.split('/')[0],
+            quoteAsset: symbol.split('/')[1],
+            price: ticker.last,
+            change24h: stats.changePrice || '0',
+            changePercent24h: stats.changeRate || '0',
+            volume24h: stats.vol || '0',
+          });
+        }
+      }
+      
+      return results;
+    } catch (error) {
+      console.error('KuCoin bulk market data error, falling back to individual requests:', error);
+      // Fallback to individual requests if bulk fails
+      const marketDataPromises = symbols.map(symbol => 
+        this.getMarketData(symbol).catch(err => {
+          console.error(`Failed to get market data for ${symbol}:`, err);
+          return null;
+        })
+      );
+      const results = await Promise.all(marketDataPromises);
+      return results.filter(result => result !== null) as InsertMarketData[];
+    }
   }
 }
 

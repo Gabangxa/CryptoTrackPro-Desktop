@@ -110,16 +110,51 @@ export class BinanceAPI {
   }
 
   async getMultipleMarketData(symbols: string[]): Promise<InsertMarketData[]> {
-    const binanceSymbols = symbols.map(s => s.replace('/', ''));
-    const results = await Promise.allSettled(
-      binanceSymbols.map(symbol => this.getMarketData(symbol))
-    );
+    try {
+      // Use bulk ticker endpoints for better performance
+      const allPrices = await this.makeRequest('/api/v3/ticker/price');
+      const all24hrStats = await this.makeRequest('/api/v3/ticker/24hr');
+      
+      const results: InsertMarketData[] = [];
+      
+      for (const symbol of symbols) {
+        const binanceSymbol = symbol.replace('/', '');
+        const priceData = allPrices.find((p: any) => p.symbol === binanceSymbol);
+        const statsData = all24hrStats.find((s: any) => s.symbol === binanceSymbol);
+        
+        if (priceData && statsData) {
+          results.push({
+            symbol,
+            baseAsset: symbol.split('/')[0],
+            quoteAsset: symbol.split('/')[1],
+            price: priceData.price,
+            change24h: statsData.priceChange || '0',
+            changePercent24h: statsData.priceChangePercent || '0',
+            volume24h: statsData.volume || '0',
+          });
+        }
+      }
+      
+      return results;
+    } catch (error) {
+      console.error('Binance bulk market data error, falling back to individual requests:', error);
+      // Fallback to individual requests
+      const binanceSymbols = symbols.map(s => s.replace('/', ''));
+      const results = await Promise.allSettled(
+        binanceSymbols.map(symbol => 
+          this.getMarketData(symbol).catch(err => {
+            console.error(`Failed to get market data for ${symbol}:`, err);
+            return null;
+          })
+        )
+      );
 
-    return results
-      .filter((result): result is PromiseFulfilledResult<InsertMarketData> => 
-        result.status === 'fulfilled'
-      )
-      .map(result => result.value);
+      return results
+        .filter((result): result is PromiseFulfilledResult<InsertMarketData> => 
+          result.status === 'fulfilled' && result.value !== null
+        )
+        .map(result => result.value);
+    }
   }
 }
 
