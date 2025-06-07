@@ -5,6 +5,7 @@ import { PositionsTable } from "@/components/portfolio/positions-table";
 import { QuickOrder } from "@/components/trading/quick-order";
 import { AlertsPanel } from "@/components/alerts/alerts-panel";
 import { ExchangeStatus } from "@/components/exchanges/exchange-status";
+import { SpotBalances } from "@/components/portfolio/spot-balances";
 import { useWebSocket } from "@/hooks/use-websocket";
 import { useQuery } from "@tanstack/react-query";
 
@@ -39,6 +40,8 @@ export default function Dashboard() {
           <OverviewCards summary={summary} isLoading={summaryLoading} />
           
           <ExchangeStatus exchanges={exchanges} isLoading={exchangesLoading} />
+          
+          <SpotBalances exchanges={exchanges} />
           
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <div className="lg:col-span-2">

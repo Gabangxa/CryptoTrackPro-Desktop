@@ -104,7 +104,7 @@ export class MemStorage implements IStorage {
   }
 
   private async initializeDefaultExchanges() {
-    const defaultExchanges: InsertExchange[] = [
+    const defaultExchanges = [
       { name: "kucoin", displayName: "KuCoin", isConnected: true, sandboxMode: false, supportedAccountTypes: ["spot", "futures", "margin"] },
       { name: "binance", displayName: "Binance", isConnected: false, sandboxMode: true, supportedAccountTypes: ["spot", "futures", "margin"] },
       { name: "coinbase", displayName: "Coinbase", isConnected: false, sandboxMode: true, supportedAccountTypes: ["spot"] },
@@ -114,7 +114,7 @@ export class MemStorage implements IStorage {
     ];
 
     for (const exchange of defaultExchanges) {
-      await this.createExchange(exchange);
+      await this.createExchange(exchange as InsertExchange);
     }
   }
 
@@ -177,7 +177,7 @@ export class MemStorage implements IStorage {
       apiKey: insertExchange.apiKey ?? null,
       apiSecret: insertExchange.apiSecret ?? null,
       sandboxMode: insertExchange.sandboxMode ?? true,
-      supportedAccountTypes: insertExchange.supportedAccountTypes || ["spot"],
+      supportedAccountTypes: (insertExchange.supportedAccountTypes as string[]) || ["spot"],
     };
     this.exchanges.set(id, exchange);
     return exchange;
