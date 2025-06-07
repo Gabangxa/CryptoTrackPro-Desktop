@@ -56,7 +56,9 @@ export class KuCoinAPI {
         requestPath,
         hasApiKey: !!this.apiKey,
         hasSecretKey: !!this.secretKey,
-        hasPassphrase: !!this.passphrase
+        hasPassphrase: !!this.passphrase,
+        signature: signature.substring(0, 20) + '...',
+        message: (timestamp + method.toUpperCase() + requestPath + body).substring(0, 50) + '...'
       });
     }
 
@@ -67,12 +69,20 @@ export class KuCoinAPI {
     });
 
     if (!response.ok) {
-      throw new Error(`KuCoin API error: ${response.status} ${response.statusText}`);
+      const errorText = await response.text();
+      console.error('KuCoin API Response:', {
+        status: response.status,
+        statusText: response.statusText,
+        headers: Object.fromEntries(response.headers.entries()),
+        body: errorText
+      });
+      throw new Error(`KuCoin API error: ${response.status} ${response.statusText} - ${errorText}`);
     }
 
     const data = await response.json();
     
     if (data.code !== '200000') {
+      console.error('KuCoin API Error Response:', data);
       throw new Error(`KuCoin API error: ${data.code} - ${data.msg}`);
     }
 

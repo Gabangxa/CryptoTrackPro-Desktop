@@ -53,6 +53,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.get("/api/exchanges/:id/test", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const result = await apiManager.testExchangeConnection(id);
+      res.json({ connected: result });
+    } catch (error) {
+      res.status(500).json({ error: "Connection test failed", details: error.message });
+    }
+  });
+
   // Position endpoints
   app.get("/api/positions", async (req, res) => {
     try {
