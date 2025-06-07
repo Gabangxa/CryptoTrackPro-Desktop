@@ -56,10 +56,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/exchanges/:id/test", async (req, res) => {
     try {
       const id = parseInt(req.params.id);
+      console.log(`Testing connection for exchange ${id}`);
       const result = await apiManager.testExchangeConnection(id);
+      console.log(`Connection test result for exchange ${id}: ${result}`);
       res.json({ connected: result });
     } catch (error) {
-      res.status(500).json({ error: "Connection test failed", details: error.message });
+      console.error(`Connection test failed for exchange ${id}:`, error);
+      res.status(500).json({ error: "Connection test failed", details: (error as Error).message });
+    }
+  });
+
+  app.get("/api/debug/exchanges", async (req, res) => {
+    try {
+      const exchanges = await storage.getExchanges();
+      const debug = exchanges.map(ex => ({
+        id: ex.id,
+        name: ex.name,
+        displayName: ex.displayName,
+        isConnected: ex.isConnected,
+        hasApiKey: !!ex.apiKey,
+        hasApiSecret: !!ex.apiSecret,
+        sandboxMode: ex.sandboxMode
+      }));
+      res.json(debug);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to get debug info" });
     }
   });
 

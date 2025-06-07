@@ -39,6 +39,14 @@ export class BybitAPI {
       headers['X-BAPI-SIGN'] = signature;
       headers['X-BAPI-TIMESTAMP'] = timestamp;
       headers['X-BAPI-RECV-WINDOW'] = '5000';
+
+      console.log('Bybit API Request:', {
+        endpoint,
+        method,
+        hasApiKey: !!this.apiKey,
+        hasSecretKey: !!this.secretKey,
+        timestamp
+      });
     }
 
     if (method === 'GET' && Object.keys(params).length > 0) {
@@ -53,11 +61,23 @@ export class BybitAPI {
     });
 
     if (!response.ok) {
-      throw new Error(`Bybit API error: ${response.status} ${response.statusText}`);
+      const errorBody = await response.text();
+      console.error('Bybit API Error:', {
+        status: response.status,
+        statusText: response.statusText,
+        endpoint,
+        body: errorBody
+      });
+      throw new Error(`Bybit API error: ${response.status} ${response.statusText} - ${errorBody}`);
     }
 
     const data = await response.json();
     if (data.retCode !== 0) {
+      console.error('Bybit API Business Error:', {
+        endpoint,
+        retCode: data.retCode,
+        retMsg: data.retMsg
+      });
       throw new Error(`Bybit API error: ${data.retMsg}`);
     }
 

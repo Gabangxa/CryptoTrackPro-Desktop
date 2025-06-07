@@ -18,7 +18,12 @@ export class APIManager {
 
   async updateExchangeCredentials(exchangeId: number, credentials: ExchangeCredentials): Promise<boolean> {
     const exchange = await storage.getExchange(exchangeId);
-    if (!exchange) return false;
+    if (!exchange) {
+      console.error(`Exchange with ID ${exchangeId} not found`);
+      return false;
+    }
+
+    console.log(`Updating credentials for ${exchange.name} (ID: ${exchangeId})`);
 
     // Update exchange in storage
     await storage.updateExchange(exchangeId, {
@@ -32,20 +37,27 @@ export class APIManager {
     switch (exchange.name.toLowerCase()) {
       case 'binance':
         this.binanceInstances.set(exchangeId, new BinanceAPI(credentials.apiKey, credentials.apiSecret, credentials.sandboxMode));
+        console.log(`Binance API initialized for exchange ${exchangeId}, sandbox: ${credentials.sandboxMode}`);
         break;
       case 'bybit':
         this.bybitInstances.set(exchangeId, new BybitAPI(credentials.apiKey, credentials.apiSecret, credentials.sandboxMode));
+        console.log(`Bybit API initialized for exchange ${exchangeId}, sandbox: ${credentials.sandboxMode}`);
         break;
       case 'kucoin':
-        if (!credentials.passphrase) throw new Error('KuCoin requires a passphrase');
+        if (!credentials.passphrase) {
+          console.error('KuCoin requires a passphrase');
+          throw new Error('KuCoin requires a passphrase');
+        }
         const kucoinAPI = new KuCoinAPI(credentials.apiKey, credentials.apiSecret, credentials.passphrase, credentials.sandboxMode);
         this.kucoinInstances.set(exchangeId, kucoinAPI);
         console.log(`KuCoin API initialized for exchange ${exchangeId}, sandbox: ${credentials.sandboxMode}`);
         break;
       default:
+        console.error(`Unsupported exchange: ${exchange.name}`);
         return false;
     }
 
+    console.log(`Successfully updated credentials for ${exchange.name}`);
     return true;
   }
 
@@ -187,34 +199,54 @@ export class APIManager {
 
   async getExchangeBalances(exchangeId: number): Promise<any[]> {
     const exchange = await storage.getExchange(exchangeId);
-    if (!exchange || !exchange.isConnected) return [];
+    if (!exchange || !exchange.isConnected) {
+      console.log(`Exchange ${exchangeId} not found or not connected`);
+      return [];
+    }
+
+    console.log(`Fetching balances for ${exchange.displayName} (ID: ${exchangeId})`);
 
     try {
       switch (exchange.name.toLowerCase()) {
         case 'binance':
           const binanceAPI = this.binanceInstances.get(exchangeId);
           if (binanceAPI) {
+            console.log(`Calling Binance getSpotBalances for exchange ${exchangeId}`);
             const balances = await binanceAPI.getSpotBalances();
-            return this.formatSpotBalances(balances, 'binance');
+            const formatted = this.formatSpotBalances(balances, 'binance');
+            console.log(`Binance returned ${formatted.length} spot balances`);
+            return formatted;
+          } else {
+            console.error(`Binance API instance not found for exchange ${exchangeId}`);
           }
           break;
         case 'bybit':
           const bybitAPI = this.bybitInstances.get(exchangeId);
           if (bybitAPI) {
+            console.log(`Calling Bybit getAccountBalance for exchange ${exchangeId}`);
             const account = await bybitAPI.getAccountBalance();
-            return this.formatSpotBalances(account, 'bybit');
+            const formatted = this.formatSpotBalances(account, 'bybit');
+            console.log(`Bybit returned ${formatted.length} spot balances`);
+            return formatted;
+          } else {
+            console.error(`Bybit API instance not found for exchange ${exchangeId}`);
           }
           break;
         case 'kucoin':
           const kucoinAPI = this.kucoinInstances.get(exchangeId);
           if (kucoinAPI) {
+            console.log(`Calling KuCoin getSpotBalances for exchange ${exchangeId}`);
             const balances = await kucoinAPI.getSpotBalances();
-            return this.formatSpotBalances(balances, 'kucoin');
+            const formatted = this.formatSpotBalances(balances, 'kucoin');
+            console.log(`KuCoin returned ${formatted.length} spot balances`);
+            return formatted;
+          } else {
+            console.error(`KuCoin API instance not found for exchange ${exchangeId}`);
           }
           break;
       }
     } catch (error) {
-      console.error(`Error fetching balances from ${exchange.displayName}:`, error);
+      console.error(`Error fetching balances from ${exchange.displayName} (ID: ${exchangeId}):`, error);
     }
 
     return [];

@@ -40,13 +40,30 @@ export class BinanceAPI {
       headers['X-MBX-APIKEY'] = this.apiKey;
     }
 
+    if (signed) {
+      console.log('Binance API Request:', {
+        endpoint,
+        method,
+        hasApiKey: !!this.apiKey,
+        hasSecretKey: !!this.secretKey,
+        timestamp: params.timestamp
+      });
+    }
+
     const response = await fetch(url, {
       method,
       headers,
     });
 
     if (!response.ok) {
-      throw new Error(`Binance API error: ${response.status} ${response.statusText}`);
+      const errorBody = await response.text();
+      console.error('Binance API Error:', {
+        status: response.status,
+        statusText: response.statusText,
+        endpoint,
+        body: errorBody
+      });
+      throw new Error(`Binance API error: ${response.status} ${response.statusText} - ${errorBody}`);
     }
 
     return response.json();
