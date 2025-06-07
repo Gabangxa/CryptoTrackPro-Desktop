@@ -43,6 +43,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.get("/api/exchanges/:id/balances", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const balances = await apiManager.getExchangeBalances(id);
+      res.json(balances);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch exchange balances" });
+    }
+  });
+
   // Position endpoints
   app.get("/api/positions", async (req, res) => {
     try {

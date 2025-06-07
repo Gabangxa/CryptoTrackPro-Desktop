@@ -132,12 +132,14 @@ export class MemStorage implements IStorage {
       await this.upsertMarketData(data);
     }
 
-    // Add sample positions
+    // Add sample spot positions (representing actual holdings)
     const samplePositions = [
-      { exchangeId: 1, symbol: "BTC/USDT", baseAsset: "BTC", quoteAsset: "USDT", accountType: "spot", side: "long", size: "0.5", entryPrice: "42000.00", markPrice: "43250.50", unrealizedPnl: "625.25" },
-      { exchangeId: 1, symbol: "ETH/USDT", baseAsset: "ETH", quoteAsset: "USDT", accountType: "futures", side: "long", size: "10", entryPrice: "2500.00", markPrice: "2485.75", unrealizedPnl: "-142.50" },
-      { exchangeId: 2, symbol: "SOL/USDT", baseAsset: "SOL", quoteAsset: "USDT", accountType: "spot", side: "long", size: "100", entryPrice: "95.00", markPrice: "98.42", unrealizedPnl: "342.00" },
-      { exchangeId: 3, symbol: "ADA/USDT", baseAsset: "ADA", quoteAsset: "USDT", accountType: "margin", side: "long", size: "5000", entryPrice: "0.3700", markPrice: "0.3847", unrealizedPnl: "73.50" },
+      { exchangeId: 1, symbol: "BTC/USDT", baseAsset: "BTC", quoteAsset: "USDT", accountType: "spot", side: "long", size: "1.25", entryPrice: "42000.00", markPrice: "43250.50", unrealizedPnl: "1563.13" },
+      { exchangeId: 1, symbol: "ETH/USDT", baseAsset: "ETH", quoteAsset: "USDT", accountType: "spot", side: "long", size: "15.5", entryPrice: "2300.00", markPrice: "2485.75", unrealizedPnl: "2879.13" },
+      { exchangeId: 1, symbol: "SOL/USDT", baseAsset: "SOL", quoteAsset: "USDT", accountType: "spot", side: "long", size: "200", entryPrice: "85.00", markPrice: "98.42", unrealizedPnl: "2684.00" },
+      { exchangeId: 2, symbol: "BTC/USDT", baseAsset: "BTC", quoteAsset: "USDT", accountType: "spot", side: "long", size: "0.75", entryPrice: "41500.00", markPrice: "43250.50", unrealizedPnl: "1312.88" },
+      { exchangeId: 2, symbol: "ADA/USDT", baseAsset: "ADA", quoteAsset: "USDT", accountType: "spot", side: "long", size: "8000", entryPrice: "0.3500", markPrice: "0.3847", unrealizedPnl: "277.60" },
+      { exchangeId: 5, symbol: "DOT/USDT", baseAsset: "DOT", quoteAsset: "USDT", accountType: "spot", side: "long", size: "500", entryPrice: "6.20", markPrice: "6.52", unrealizedPnl: "160.00" },
     ];
 
     for (const position of samplePositions) {

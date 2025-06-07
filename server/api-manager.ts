@@ -192,20 +192,22 @@ export class APIManager {
         case 'binance':
           const binanceAPI = this.binanceInstances.get(exchangeId);
           if (binanceAPI) {
-            return await binanceAPI.getSpotBalances();
+            const balances = await binanceAPI.getSpotBalances();
+            return this.formatSpotBalances(balances, 'binance');
           }
           break;
         case 'bybit':
           const bybitAPI = this.bybitInstances.get(exchangeId);
           if (bybitAPI) {
-            const balance = await bybitAPI.getAccountBalance();
-            return [balance];
+            const account = await bybitAPI.getAccountBalance();
+            return this.formatSpotBalances(account, 'bybit');
           }
           break;
         case 'kucoin':
           const kucoinAPI = this.kucoinInstances.get(exchangeId);
           if (kucoinAPI) {
-            return await kucoinAPI.getSpotBalances();
+            const balances = await kucoinAPI.getSpotBalances();
+            return this.formatSpotBalances(balances, 'kucoin');
           }
           break;
       }
@@ -214,6 +216,54 @@ export class APIManager {
     }
 
     return [];
+  }
+
+  private formatSpotBalances(balances: any, exchangeName: string): any[] {
+    if (!balances) return [];
+
+    switch (exchangeName) {
+      case 'binance':
+        return balances
+          .filter((balance: any) => parseFloat(balance.free) > 0 || parseFloat(balance.locked) > 0)
+          .map((balance: any) => ({
+            asset: balance.asset,
+            free: balance.free,
+            locked: balance.locked,
+            total: (parseFloat(balance.free) + parseFloat(balance.locked)).toString(),
+            exchange: 'binance'
+          }));
+
+      case 'bybit':
+        if (balances.result && balances.result.list) {
+          return balances.result.list
+            .filter((account: any) => account.accountType === 'SPOT')
+            .flatMap((account: any) => 
+              account.coin.filter((coin: any) => parseFloat(coin.walletBalance) > 0)
+                .map((coin: any) => ({
+                  asset: coin.coin,
+                  free: coin.availableToWithdraw,
+                  locked: (parseFloat(coin.walletBalance) - parseFloat(coin.availableToWithdraw)).toString(),
+                  total: coin.walletBalance,
+                  exchange: 'bybit'
+                }))
+            );
+        }
+        return [];
+
+      case 'kucoin':
+        return balances
+          .filter((balance: any) => parseFloat(balance.available) > 0 || parseFloat(balance.holds) > 0)
+          .map((balance: any) => ({
+            asset: balance.currency,
+            free: balance.available,
+            locked: balance.holds,
+            total: (parseFloat(balance.available) + parseFloat(balance.holds)).toString(),
+            exchange: 'kucoin'
+          }));
+
+      default:
+        return [];
+    }
   }
 
   async getExchangePositions(exchangeId: number): Promise<any[]> {
