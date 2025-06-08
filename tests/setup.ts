@@ -4,13 +4,20 @@ import '@testing-library/jest-dom';
 global.fetch = jest.fn();
 
 // Mock WebSocket
-global.WebSocket = jest.fn().mockImplementation(() => ({
+const MockWebSocket = jest.fn().mockImplementation(() => ({
   addEventListener: jest.fn(),
   removeEventListener: jest.fn(),
   send: jest.fn(),
   close: jest.fn(),
   readyState: 1,
 }));
+
+MockWebSocket.CONNECTING = 0;
+MockWebSocket.OPEN = 1;
+MockWebSocket.CLOSING = 2;
+MockWebSocket.CLOSED = 3;
+
+global.WebSocket = MockWebSocket as any;
 
 // Mock environment variables
 process.env.NODE_ENV = 'test';
