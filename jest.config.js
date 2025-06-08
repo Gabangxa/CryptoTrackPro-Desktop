@@ -1,5 +1,6 @@
-module.exports = {
-  preset: 'ts-jest',
+export default {
+  preset: 'ts-jest/presets/default-esm',
+  extensionsToTreatAsEsm: ['.ts', '.tsx'],
   testEnvironment: 'jsdom',
   roots: ['<rootDir>/tests', '<rootDir>/client/src', '<rootDir>/server'],
   testMatch: [
@@ -7,7 +8,12 @@ module.exports = {
     '**/?(*.)+(spec|test).ts?(x)'
   ],
   transform: {
-    '^.+\\.tsx?$': 'ts-jest',
+    '^.+\\.tsx?$': ['ts-jest', {
+      useESM: true,
+      tsconfig: {
+        module: 'ESNext'
+      }
+    }],
   },
   collectCoverageFrom: [
     'client/src/**/*.{ts,tsx}',
@@ -18,7 +24,7 @@ module.exports = {
     '!**/dist/**'
   ],
   setupFilesAfterEnv: ['<rootDir>/tests/setup.ts'],
-  moduleNameMapping: {
+  moduleNameMapper: {
     '^@/(.*)$': '<rootDir>/client/src/$1',
     '^@shared/(.*)$': '<rootDir>/shared/$1'
   },
