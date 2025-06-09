@@ -154,7 +154,9 @@ export class MemStorage implements IStorage {
     const updated: Exchange = { 
       ...exchange, 
       ...update,
-      supportedAccountTypes: (update.supportedAccountTypes as string[]) || exchange.supportedAccountTypes
+      supportedAccountTypes: update.supportedAccountTypes ? 
+        Array.from(update.supportedAccountTypes as string[]) : 
+        exchange.supportedAccountTypes
     };
     this.exchanges.set(id, updated);
     return updated;
