@@ -109,22 +109,24 @@ export default function AnalyticsPage() {
     .sort((a, b) => a.pnlPercent - b.pnlPercent)
     .slice(0, 5) || [];
 
-  const formatCurrency = (value: number) => {
+  const formatCurrency = (value: string | number) => {
+    const num = typeof value === 'string' ? parseFloat(value) : value;
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
       currency: 'USD',
       minimumFractionDigits: 2,
       maximumFractionDigits: 2
-    }).format(value);
+    }).format(num);
   };
 
-  const formatPercent = (value: number) => {
+  const formatPercent = (value: string | number) => {
+    const num = typeof value === 'string' ? parseFloat(value) : value;
     const formatted = new Intl.NumberFormat('en-US', {
       style: 'percent',
       minimumFractionDigits: 2,
       maximumFractionDigits: 2
-    }).format(value / 100);
-    return value >= 0 ? `+${formatted}` : formatted;
+    }).format(num / 100);
+    return num >= 0 ? `+${formatted}` : formatted;
   };
 
   const getPositionValue = (position: PositionWithExchange) => {
@@ -316,15 +318,15 @@ export default function AnalyticsPage() {
                       <div>
                         <div className="font-medium">{position.symbol}</div>
                         <div className="text-sm text-muted-foreground">
-                          {formatCurrency(parseFloat(position.currentValue))}
+                          {formatCurrency(position.currentValue)}
                         </div>
                       </div>
                       <div className="text-right">
                         <div className="text-red-600 font-medium">
-                          {formatPercent(parseFloat(position.pnlPercent))}
+                          {formatPercent(position.pnlPercent)}
                         </div>
                         <div className="text-sm text-red-600">
-                          {formatCurrency(parseFloat(position.unrealizedPnl))}
+                          {formatCurrency(parseFloat(position.unrealizedPnl || '0'))}
                         </div>
                       </div>
                     </div>
@@ -356,9 +358,9 @@ export default function AnalyticsPage() {
                   </div>
                   <Progress value={position.allocationPercent} className="h-2" />
                   <div className="flex justify-between text-xs text-muted-foreground">
-                    <span>{formatCurrency(parseFloat(position.currentValue))}</span>
-                    <span className={parseFloat(position.pnlPercent) >= 0 ? 'text-green-600' : 'text-red-600'}>
-                      {formatPercent(parseFloat(position.pnlPercent))}
+                    <span>{formatCurrency(position.currentValue)}</span>
+                    <span className={position.pnlPercent >= 0 ? 'text-green-600' : 'text-red-600'}>
+                      {formatPercent(position.pnlPercent)}
                     </span>
                   </div>
                 </div>

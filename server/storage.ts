@@ -119,43 +119,7 @@ export class MemStorage implements IStorage {
   }
 
   private async initializeSampleData() {
-    // Add sample market data
-    const sampleMarketData = [
-      { symbol: "BTC/USDT", baseAsset: "BTC", quoteAsset: "USDT", price: "43250.50", change24h: "1250.30", changePercent24h: "2.98", volume24h: "1234567890" },
-      { symbol: "ETH/USDT", baseAsset: "ETH", quoteAsset: "USDT", price: "2485.75", change24h: "-45.20", changePercent24h: "-1.79", volume24h: "987654321" },
-      { symbol: "SOL/USDT", baseAsset: "SOL", quoteAsset: "USDT", price: "98.42", change24h: "4.15", changePercent24h: "4.40", volume24h: "456789123" },
-      { symbol: "ADA/USDT", baseAsset: "ADA", quoteAsset: "USDT", price: "0.3847", change24h: "0.0123", changePercent24h: "3.30", volume24h: "234567890" },
-      { symbol: "DOT/USDT", baseAsset: "DOT", quoteAsset: "USDT", price: "6.52", change24h: "-0.18", changePercent24h: "-2.68", volume24h: "123456789" },
-    ];
-
-    for (const data of sampleMarketData) {
-      await this.upsertMarketData(data);
-    }
-
-    // Add sample spot positions (representing actual holdings)
-    const samplePositions = [
-      { exchangeId: 1, symbol: "BTC/USDT", baseAsset: "BTC", quoteAsset: "USDT", accountType: "spot", side: "long", size: "1.25", entryPrice: "42000.00", markPrice: "43250.50", unrealizedPnl: "1563.13" },
-      { exchangeId: 1, symbol: "ETH/USDT", baseAsset: "ETH", quoteAsset: "USDT", accountType: "spot", side: "long", size: "15.5", entryPrice: "2300.00", markPrice: "2485.75", unrealizedPnl: "2879.13" },
-      { exchangeId: 1, symbol: "SOL/USDT", baseAsset: "SOL", quoteAsset: "USDT", accountType: "spot", side: "long", size: "200", entryPrice: "85.00", markPrice: "98.42", unrealizedPnl: "2684.00" },
-      { exchangeId: 2, symbol: "BTC/USDT", baseAsset: "BTC", quoteAsset: "USDT", accountType: "spot", side: "long", size: "0.75", entryPrice: "41500.00", markPrice: "43250.50", unrealizedPnl: "1312.88" },
-      { exchangeId: 2, symbol: "ADA/USDT", baseAsset: "ADA", quoteAsset: "USDT", accountType: "spot", side: "long", size: "8000", entryPrice: "0.3500", markPrice: "0.3847", unrealizedPnl: "277.60" },
-      { exchangeId: 5, symbol: "DOT/USDT", baseAsset: "DOT", quoteAsset: "USDT", accountType: "spot", side: "long", size: "500", entryPrice: "6.20", markPrice: "6.52", unrealizedPnl: "160.00" },
-    ];
-
-    for (const position of samplePositions) {
-      await this.createPosition(position);
-    }
-
-    // Add sample alerts
-    const sampleAlerts = [
-      { type: "price", targetType: "token", targetId: "BTC/USDT", condition: "greater_than", threshold: "45000", description: "BTC price alert - above $45,000" },
-      { type: "price", targetType: "token", targetId: "ETH/USDT", condition: "less_than", threshold: "2400", description: "ETH price alert - below $2,400" },
-      { type: "portfolio_value", targetType: "portfolio", condition: "greater_than", threshold: "50000", description: "Portfolio value alert - above $50,000" },
-    ];
-
-    for (const alert of sampleAlerts) {
-      await this.createAlert(alert);
-    }
+    // No sample data - application starts with clean state
   }
 
   // Exchanges
@@ -187,7 +151,11 @@ export class MemStorage implements IStorage {
     const exchange = this.exchanges.get(id);
     if (!exchange) return undefined;
 
-    const updated = { ...exchange, ...update };
+    const updated: Exchange = { 
+      ...exchange, 
+      ...update,
+      supportedAccountTypes: (update.supportedAccountTypes as string[]) || exchange.supportedAccountTypes
+    };
     this.exchanges.set(id, updated);
     return updated;
   }
