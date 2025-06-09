@@ -453,9 +453,9 @@ export default function AnalyticsPage() {
                   {alerts.slice(0, 10).map((alert) => (
                     <div key={alert.id} className="flex items-center justify-between p-3 border rounded-lg">
                       <div className="flex items-center space-x-3">
-                        {alert.status === 'active' ? (
+                        {alert.isActive && !alert.isTriggered ? (
                           <Activity className="h-4 w-4 text-blue-500" />
-                        ) : alert.status === 'triggered' ? (
+                        ) : alert.isTriggered ? (
                           <CheckCircle className="h-4 w-4 text-green-500" />
                         ) : (
                           <XCircle className="h-4 w-4 text-gray-400" />
@@ -473,13 +473,14 @@ export default function AnalyticsPage() {
                       </div>
                       <div className="text-right">
                         <Badge variant={
-                          alert.status === 'active' ? 'default' :
-                          alert.status === 'triggered' ? 'secondary' : 'outline'
+                          alert.isActive && !alert.isTriggered ? 'default' :
+                          alert.isTriggered ? 'secondary' : 'outline'
                         }>
-                          {alert.status}
+                          {alert.isActive && !alert.isTriggered ? 'active' :
+                           alert.isTriggered ? 'triggered' : 'inactive'}
                         </Badge>
                         <div className="text-sm text-muted-foreground mt-1">
-                          {alert.condition} ${alert.value}
+                          {alert.condition} ${alert.threshold}
                         </div>
                       </div>
                     </div>
