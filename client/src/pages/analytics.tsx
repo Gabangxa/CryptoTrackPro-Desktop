@@ -3,8 +3,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { 
   TrendingUp, 
@@ -13,11 +11,9 @@ import {
   BarChart3, 
   PieChart, 
   Activity,
-  AlertTriangle,
   CheckCircle,
   XCircle,
   Zap,
-  Users,
   Target
 } from "lucide-react";
 import type { 
@@ -127,6 +123,15 @@ export default function AnalyticsPage() {
       maximumFractionDigits: 2
     }).format(value / 100);
     return value >= 0 ? `+${formatted}` : formatted;
+  };
+
+  const getPositionValue = (position: PositionWithExchange) => {
+    return parseFloat(position.size) * parseFloat(position.markPrice || position.entryPrice);
+  };
+
+  const getPositionPnlPercent = (position: PositionWithExchange) => {
+    const value = getPositionValue(position);
+    return value > 0 ? (parseFloat(position.unrealizedPnl || '0') / value) * 100 : 0;
   };
 
   if (isLoading) {
@@ -251,24 +256,28 @@ export default function AnalyticsPage() {
               </CardHeader>
               <CardContent className="space-y-3">
                 {topPerformers.length > 0 ? (
-                  topPerformers.map((position, index) => (
+                  topPerformers.map((position, index) => {
+                    const posValue = getPositionValue(position);
+                    const pnlPercent = getPositionPnlPercent(position);
+                    return (
                     <div key={position.id} className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
                       <div>
                         <div className="font-medium">{position.symbol}</div>
                         <div className="text-sm text-muted-foreground">
-                          {formatCurrency(position.currentValue)}
+                          {formatCurrency(posValue)}
                         </div>
                       </div>
                       <div className="text-right">
                         <div className="text-green-600 font-medium">
-                          {formatPercent(position.pnlPercent)}
+                          {formatPercent(pnlPercent)}
                         </div>
                         <div className="text-sm text-green-600">
                           {formatCurrency(parseFloat(position.unrealizedPnl || '0'))}
                         </div>
                       </div>
                     </div>
-                  ))
+                    );
+                  })
                 ) : (
                   <div className="text-center py-8 text-muted-foreground">
                     No profitable positions currently
