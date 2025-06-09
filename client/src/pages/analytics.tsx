@@ -1,4 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
+import { Sidebar } from "@/components/layout/sidebar";
+import { Header } from "@/components/layout/header";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
@@ -136,32 +138,42 @@ export default function AnalyticsPage() {
 
   if (isLoading) {
     return (
-      <div className="p-6 space-y-6">
-        <div className="flex justify-between items-center">
-          <div>
-            <Skeleton className="h-8 w-48 mb-2" />
-            <Skeleton className="h-4 w-96" />
+      <div className="min-h-screen bg-background text-foreground flex">
+        <Sidebar />
+        <main className="flex-1 overflow-auto">
+          <Header summary={portfolioSummary} />
+          <div className="p-6 space-y-6">
+            <div className="flex justify-between items-center">
+              <div>
+                <Skeleton className="h-8 w-48 mb-2" />
+                <Skeleton className="h-4 w-96" />
+              </div>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              {[...Array(4)].map((_, i) => (
+                <Card key={i}>
+                  <CardHeader className="pb-2">
+                    <Skeleton className="h-4 w-24" />
+                  </CardHeader>
+                  <CardContent>
+                    <Skeleton className="h-8 w-32 mb-2" />
+                    <Skeleton className="h-3 w-20" />
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
           </div>
-        </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {[...Array(4)].map((_, i) => (
-            <Card key={i}>
-              <CardHeader className="pb-2">
-                <Skeleton className="h-4 w-24" />
-              </CardHeader>
-              <CardContent>
-                <Skeleton className="h-8 w-32 mb-2" />
-                <Skeleton className="h-3 w-20" />
-              </CardContent>
-            </Card>
-          ))}
-        </div>
+        </main>
       </div>
     );
   }
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="min-h-screen bg-background text-foreground flex">
+      <Sidebar />
+      <main className="flex-1 overflow-auto">
+        <Header summary={portfolioSummary} />
+        <div className="p-6 space-y-6">
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Portfolio Analytics</h1>
@@ -495,6 +507,8 @@ export default function AnalyticsPage() {
           </Card>
         </TabsContent>
       </Tabs>
+        </div>
+      </main>
     </div>
   );
 }

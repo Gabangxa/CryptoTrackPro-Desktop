@@ -1,29 +1,34 @@
 import { useQuery } from "@tanstack/react-query";
+import { Sidebar } from "@/components/layout/sidebar";
+import { Header } from "@/components/layout/header";
 import { ExchangeConfig } from "@/components/exchanges/exchange-config";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { RefreshCw, TrendingUp, TrendingDown } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
-import type { Exchange, MarketDataWithBestPrice } from "@shared/schema";
+import type { Exchange, MarketDataWithBestPrice, PortfolioSummary } from "@shared/schema";
 
 export default function ExchangesPage() {
-  const { data: exchanges, isLoading: exchangesLoading } = useQuery({
-    queryKey: ["/api/exchanges"],
-    queryFn: () => apiRequest("/api/exchanges"),
+  const { data: summary } = useQuery<PortfolioSummary>({
+    queryKey: ["/api/portfolio/summary"],
   });
 
-  const { data: bestPrices, isLoading: pricesLoading, refetch } = useQuery({
+  const { data: exchanges, isLoading: exchangesLoading } = useQuery<Exchange[]>({
+    queryKey: ["/api/exchanges"],
+  });
+
+  const { data: bestPrices, isLoading: pricesLoading, refetch } = useQuery<MarketDataWithBestPrice[]>({
     queryKey: ["/api/market-data/best-prices"],
-    queryFn: () => apiRequest("/api/market-data/best-prices"),
     refetchInterval: 10000,
   });
 
   const fetchMarketData = async () => {
     const symbols = ["BTC/USDT", "ETH/USDT", "BNB/USDT", "ADA/USDT", "SOL/USDT"];
     try {
-      await apiRequest("/api/market-data/fetch", {
+      await fetch("/api/market-data/fetch", {
         method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ symbols }),
       });
       refetch();
@@ -64,12 +69,18 @@ export default function ExchangesPage() {
     );
   };
 
-  const exchangesList = exchanges as Exchange[] || [];
-  const marketDataArray = bestPrices as MarketDataWithBestPrice[] || [];
+  const exchangesList = exchanges || [];
+  const marketDataArray = bestPrices || [];
   const connectedExchanges = exchangesList.filter(e => e.isConnected);
 
   return (
-    <div className="container mx-auto p-6 space-y-6">
+    <div className="min-h-screen bg-background text-foreground flex">
+      <Sidebar />
+      
+      <main className="flex-1 overflow-auto">
+        <Header summary={summary} />
+        
+        <div className="p-6 space-y-6">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold">Exchange Configuration</h1>
@@ -241,6 +252,8 @@ export default function ExchangesPage() {
           </CardContent>
         </Card>
       )}
+        </div>
+      </main>
     </div>
   );
 }
