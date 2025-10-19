@@ -33,26 +33,34 @@ export default function Dashboard() {
     <div className="min-h-screen bg-background text-foreground flex">
       <Sidebar />
       
-      <main className="flex-1 overflow-auto">
+      <main className="flex-1 overflow-auto scrollbar-modern">
         <Header summary={summary} />
         
-        <div className="p-6 space-y-6">
-          <OverviewCards summary={summary} isLoading={summaryLoading} />
+        <div className="p-8 space-y-8 animate-fade-in">
+          <section className="animate-slide-up">
+            <OverviewCards summary={summary} isLoading={summaryLoading} />
+          </section>
           
-          <ExchangeStatus exchanges={exchanges} isLoading={exchangesLoading} />
+          <section className="animate-slide-up" style={{ animationDelay: '100ms' }}>
+            <ExchangeStatus exchanges={exchanges} isLoading={exchangesLoading} />
+          </section>
           
-          <SpotBalances exchanges={exchanges} />
+          <section className="animate-slide-up" style={{ animationDelay: '200ms' }}>
+            <SpotBalances exchanges={exchanges} />
+          </section>
           
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <div className="lg:col-span-2">
-              <PositionsTable positions={positions} isLoading={positionsLoading} />
+          <section className="animate-slide-up" style={{ animationDelay: '300ms' }}>
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+              <div className="lg:col-span-2">
+                <PositionsTable positions={positions} isLoading={positionsLoading} />
+              </div>
+              
+              <div className="space-y-6">
+                <QuickOrder exchanges={exchanges} />
+                <AlertsPanel alerts={alerts} isLoading={alertsLoading} />
+              </div>
             </div>
-            
-            <div className="space-y-6">
-              <QuickOrder exchanges={exchanges} />
-              <AlertsPanel alerts={alerts} isLoading={alertsLoading} />
-            </div>
-          </div>
+          </section>
         </div>
       </main>
     </div>
