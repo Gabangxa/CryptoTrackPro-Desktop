@@ -3,42 +3,55 @@
 @tailwind utilities;
 
 :root {
-  --background: 222 84% 5%; /* #0F172A */
+  --background: 220 15% 8%; /* #111827 - Refined dark background */
   --foreground: 210 40% 98%; /* #F8FAFC */
-  --muted: 217 33% 17%; /* #1E293B */
-  --muted-foreground: 215 20% 65%; /* #94A3B8 */
-  --popover: 222 84% 5%; /* #0F172A */
+  --muted: 220 15% 12%; /* #1F2937 - Improved muted background */
+  --muted-foreground: 215 16% 60%; /* #9CA3AF - Better text contrast */
+  --popover: 220 15% 8%; /* #111827 */
   --popover-foreground: 210 40% 98%; /* #F8FAFC */
-  --card: 217 33% 17%; /* #1E293B */
+  --card: 220 15% 10%; /* #1A1F2E - Modern card with subtle warmth */
   --card-foreground: 210 40% 98%; /* #F8FAFC */
-  --border: 215 28% 32%; /* #334155 */
-  --input: 215 28% 32%; /* #334155 */
-  --primary: 217 91% 60%; /* #1E40AF */
+  --border: 215 20% 20%; /* #374151 - Softer borders */
+  --input: 215 20% 20%; /* #374151 */
+  --primary: 217 91% 60%; /* #3B82F6 - Modern blue */
   --primary-foreground: 210 40% 98%; /* #F8FAFC */
-  --secondary: 215 28% 32%; /* #334155 */
+  --secondary: 215 20% 18%; /* #30374A - Improved secondary */
   --secondary-foreground: 210 40% 98%; /* #F8FAFC */
-  --accent: 215 28% 32%; /* #334155 */
+  --accent: 215 20% 15%; /* #2A3340 - Better accent */
   --accent-foreground: 210 40% 98%; /* #F8FAFC */
-  --destructive: 0 84% 60%; /* #DC2626 */
+  --destructive: 0 84% 60%; /* #EF4444 */
   --destructive-foreground: 210 40% 98%; /* #F8FAFC */
-  --ring: 217 91% 60%; /* #1E40AF */
-  --radius: 0.5rem;
+  --ring: 217 91% 60%; /* #3B82F6 */
+  --radius: 0.75rem;
 
-  /* Custom crypto colors */
-  --crypto-green: 158 64% 52%; /* #059669 */
-  --crypto-red: 0 84% 60%; /* #DC2626 */
-  --crypto-yellow: 45 93% 47%; /* #F59E0B */
-  --crypto-blue: 217 91% 60%; /* #1E40AF */
+  /* Enhanced crypto colors with better vibrancy */
+  --crypto-green: 142 76% 36%; /* #10B981 - Modern green */
+  --crypto-red: 0 84% 60%; /* #EF4444 - Modern red */
+  --crypto-yellow: 45 96% 64%; /* #FCD34D - Warmer yellow */
+  --crypto-blue: 217 91% 60%; /* #3B82F6 - Consistent blue */
+  --crypto-purple: 262 83% 58%; /* #8B5CF6 - Added purple for variety */
   
-  /* Sidebar colors */
-  --sidebar-background: 217 33% 17%; /* #1E293B */
+  /* Modern sidebar with glass effect support */
+  --sidebar-background: 220 15% 10%; /* #1A1F2E */
+  --sidebar-glass: 220 15% 10% / 0.8; /* Semi-transparent for glass effect */
   --sidebar-foreground: 210 40% 98%; /* #F8FAFC */
-  --sidebar-primary: 217 91% 60%; /* #1E40AF */
+  --sidebar-primary: 217 91% 60%; /* #3B82F6 */
   --sidebar-primary-foreground: 210 40% 98%; /* #F8FAFC */
-  --sidebar-accent: 215 28% 32%; /* #334155 */
+  --sidebar-accent: 215 20% 15%; /* #2A3340 */
   --sidebar-accent-foreground: 210 40% 98%; /* #F8FAFC */
-  --sidebar-border: 215 28% 32%; /* #334155 */
-  --sidebar-ring: 217 91% 60%; /* #1E40AF */
+  --sidebar-border: 215 20% 20%; /* #374151 */
+  --sidebar-ring: 217 91% 60%; /* #3B82F6 */
+
+  /* Modern shadow system */
+  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+  --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+  
+  /* Glass effect variables */
+  --glass-bg: rgba(255, 255, 255, 0.05);
+  --glass-border: rgba(255, 255, 255, 0.1);
+  --glass-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
 }
 
 .dark {
@@ -74,20 +87,25 @@
 }
 
 @layer components {
-  .crypto-green {
+  /* Crypto color utilities */
+  .text-crypto-green {
     color: hsl(var(--crypto-green));
   }
   
-  .crypto-red {
+  .text-crypto-red {
     color: hsl(var(--crypto-red));
   }
   
-  .crypto-yellow {
+  .text-crypto-yellow {
     color: hsl(var(--crypto-yellow));
   }
   
-  .crypto-blue {
+  .text-crypto-blue {
     color: hsl(var(--crypto-blue));
+  }
+  
+  .text-crypto-purple {
+    color: hsl(var(--crypto-purple));
   }
 
   .bg-crypto-green {
@@ -106,23 +124,149 @@
     background-color: hsl(var(--crypto-blue));
   }
 
-  .text-crypto-green {
-    color: hsl(var(--crypto-green));
-  }
-  
-  .text-crypto-red {
-    color: hsl(var(--crypto-red));
-  }
-  
-  .text-crypto-yellow {
-    color: hsl(var(--crypto-yellow));
-  }
-  
-  .text-crypto-blue {
-    color: hsl(var(--crypto-blue));
+  /* Modern glass morphism effects */
+  .glass {
+    background: var(--glass-bg);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid var(--glass-border);
+    box-shadow: var(--glass-shadow);
   }
 
-  .font-mono {
-    font-family: 'Fira Code', monospace;
+  .glass-subtle {
+    background: rgba(255, 255, 255, 0.02);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+  }
+
+  /* Modern card styles */
+  .modern-card {
+    @apply bg-card border border-border rounded-xl shadow-lg;
+    box-shadow: 
+      0 4px 6px -1px rgba(0, 0, 0, 0.1),
+      0 2px 4px -1px rgba(0, 0, 0, 0.06),
+      0 0 0 1px rgba(255, 255, 255, 0.05) inset;
+  }
+
+  .modern-card-hover {
+    @apply modern-card transition-all duration-300 hover:shadow-xl hover:scale-[1.02];
+  }
+
+  /* Smooth transitions */
+  .transition-smooth {
+    @apply transition-all duration-300 ease-out;
+  }
+
+  .transition-fast {
+    @apply transition-all duration-150 ease-out;
+  }
+
+  /* Modern button styles */
+  .btn-modern {
+    @apply px-4 py-2 rounded-lg font-medium transition-smooth;
+    @apply bg-primary text-primary-foreground hover:bg-primary/90;
+    @apply shadow-md hover:shadow-lg;
+  }
+
+  .btn-ghost-modern {
+    @apply px-4 py-2 rounded-lg font-medium transition-smooth;
+    @apply hover:bg-accent/50 hover:text-accent-foreground;
+  }
+
+  /* Typography improvements */
+  .text-gradient {
+    background: linear-gradient(to right, hsl(var(--primary)), hsl(var(--crypto-blue)));
+    background-clip: text;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    color: transparent;
+  }
+
+  .text-balance {
+    text-wrap: balance;
+  }
+
+  /* Animations */
+  .animate-fade-in {
+    animation: fadeIn 0.5s ease-out;
+  }
+
+  .animate-slide-up {
+    animation: slideUp 0.5s ease-out;
+  }
+
+  .animate-scale-in {
+    animation: scaleIn 0.3s ease-out;
+  }
+}
+
+@layer utilities {
+  /* Custom shadows */
+  .shadow-glass {
+    box-shadow: var(--glass-shadow);
+  }
+
+  .shadow-modern {
+    box-shadow: var(--shadow-lg);
+  }
+
+  .shadow-modern-hover {
+    box-shadow: var(--shadow-xl);
+  }
+
+  /* Custom animations */
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes slideUp {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes scaleIn {
+    from {
+      opacity: 0;
+      transform: scale(0.95);
+    }
+    to {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+
+  /* Scrollbar styling */
+  .scrollbar-modern::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+
+  .scrollbar-modern::-webkit-scrollbar-track {
+    background: hsl(var(--muted));
+    border-radius: 10px;
+  }
+
+  .scrollbar-modern::-webkit-scrollbar-thumb {
+    background: hsl(var(--muted-foreground) / 0.3);
+    border-radius: 10px;
+    transition: background 0.2s;
+  }
+
+  .scrollbar-modern::-webkit-scrollbar-thumb:hover {
+    background: hsl(var(--muted-foreground) / 0.5);
   }
 }
