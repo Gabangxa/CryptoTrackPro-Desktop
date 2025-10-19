@@ -8,6 +8,7 @@ import { binanceAPI } from "./exchanges/binance-api";
 import { bybitAPI } from "./exchanges/bybit-api";
 import { kucoinAPI } from "./exchanges/kucoin-api";
 import { apiManager } from "./api-manager";
+import { websocketManager } from "./exchanges/websocket-manager";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Portfolio endpoints
@@ -54,8 +55,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   app.get("/api/exchanges/:id/test", async (req, res) => {
+    const id = parseInt(req.params.id);
     try {
-      const id = parseInt(req.params.id);
       console.log(`Testing connection for exchange ${id}`);
       const result = await apiManager.testExchangeConnection(id);
       console.log(`Connection test result for exchange ${id}: ${result}`);
@@ -371,6 +372,78 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // WebSocket server for real-time updates
   const wss = new WebSocketServer({ server: httpServer, path: '/ws' });
 
+  // Set up WebSocket manager event handlers for real-time updates
+  websocketManager.on('ticker_update', async (data) => {
+    // Broadcast ticker updates to all connected WebSocket clients
+    wss.clients.forEach((client) => {
+      if (client.readyState === WebSocket.OPEN) {
+        client.send(JSON.stringify({
+          type: 'ticker_update',
+          data,
+        }));
+      }
+    });
+
+    // Update position PnL based on new ticker prices
+    try {
+      const positions = await storage.getPositions();
+      for (const position of positions) {
+        if (position.symbol === data.symbol) {
+          const markPrice = parseFloat(data.price);
+          const entryPrice = parseFloat(position.entryPrice);
+          const size = parseFloat(position.size);
+          
+          let unrealizedPnl = 0;
+          if (position.side === 'long') {
+            unrealizedPnl = (markPrice - entryPrice) * size;
+          } else {
+            unrealizedPnl = (entryPrice - markPrice) * size;
+          }
+
+          await storage.updatePosition(position.id, {
+            markPrice: markPrice.toString(),
+            unrealizedPnl: unrealizedPnl.toString(),
+          });
+        }
+      }
+    } catch (error) {
+      console.error('Error updating position PnL:', error);
+    }
+  });
+
+  websocketManager.on('exchange_connected', (data) => {
+    console.log(`Exchange WebSocket connected: ${data.exchangeName} (ID: ${data.exchangeId})`);
+    wss.clients.forEach((client) => {
+      if (client.readyState === WebSocket.OPEN) {
+        client.send(JSON.stringify({
+          type: 'exchange_connected',
+          data,
+        }));
+      }
+    });
+  });
+
+  websocketManager.on('exchange_disconnected', (data) => {
+    console.log(`Exchange WebSocket disconnected: ${data.exchangeName} (ID: ${data.exchangeId})`);
+    wss.clients.forEach((client) => {
+      if (client.readyState === WebSocket.OPEN) {
+        client.send(JSON.stringify({
+          type: 'exchange_disconnected',
+          data,
+        }));
+      }
+    });
+  });
+
+  websocketManager.on('sync_balances', async ({ exchangeId }) => {
+    try {
+      await apiManager.getExchangeBalances(exchangeId);
+      console.log(`Auto-synced balances for exchange ${exchangeId}`);
+    } catch (error) {
+      console.error(`Balance sync failed for exchange ${exchangeId}:`, error);
+    }
+  });
+
   wss.on('connection', (ws) => {
     console.log('WebSocket client connected');
 
@@ -398,44 +471,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     });
   });
 
-  // Periodic market data updates using KuCoin API
+  // Periodic alert checking and summary broadcasts
+  // Note: Market data is now updated via real-time WebSocket events
   setInterval(async () => {
     try {
-      // Fetch real market data from KuCoin API
-      const symbols = ['BTC/USDT', 'ETH/USDT', 'SOL/USDT', 'ADA/USDT'];
-      
-      for (const symbol of symbols) {
-        try {
-          const marketData = await kucoinAPI.getMarketData(symbol);
-          await storage.upsertMarketData(marketData);
-        } catch (error) {
-          console.error(`Failed to update market data for ${symbol}:`, error);
-        }
-      }
-
-      // Update position mark prices and PnL
-      const positions = await storage.getPositions();
-      for (const position of positions) {
-        const marketData = await storage.getMarketDataBySymbol(position.symbol);
-        if (marketData) {
-          const markPrice = parseFloat(marketData.price);
-          const entryPrice = parseFloat(position.entryPrice);
-          const size = parseFloat(position.size);
-          
-          let unrealizedPnl = 0;
-          if (position.side === 'long') {
-            unrealizedPnl = (markPrice - entryPrice) * size;
-          } else {
-            unrealizedPnl = (entryPrice - markPrice) * size;
-          }
-
-          await storage.updatePosition(position.id, {
-            markPrice: markPrice.toString(),
-            unrealizedPnl: unrealizedPnl.toString(),
-          });
-        }
-      }
-
       // Check and trigger alerts
       const alerts = await storage.getActiveAlerts();
       for (const alert of alerts) {
@@ -469,10 +508,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
         if (shouldTrigger) {
           await storage.triggerAlert(alert.id);
           await storage.updateAlert(alert.id, { currentValue: currentValue.toString() });
+          
+          // Broadcast alert trigger to clients
+          wss.clients.forEach((client) => {
+            if (client.readyState === WebSocket.OPEN) {
+              client.send(JSON.stringify({
+                type: 'alert_triggered',
+                data: alert,
+              }));
+            }
+          });
         }
       }
 
-      // Broadcast updates to all connected clients
+      // Broadcast periodic summary updates to all connected clients
       const summary = await storage.getPortfolioSummary();
       const updatedPositions = await storage.getPositions();
       const updatedMarketData = await storage.getMarketData();
@@ -480,7 +529,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       wss.clients.forEach((client) => {
         if (client.readyState === WebSocket.OPEN) {
           client.send(JSON.stringify({
-            type: 'market_update',
+            type: 'summary_update',
             data: {
               summary,
               positions: updatedPositions,
@@ -491,9 +540,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
 
     } catch (error) {
-      console.error('Market data update error:', error);
+      console.error('Alert checking error:', error);
     }
-  }, 10000); // Update every 10 seconds
+  }, 30000); // Check alerts and broadcast summary every 30 seconds (reduced from 10s since real-time data comes from WebSocket)
 
   return httpServer;
 }

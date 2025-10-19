@@ -1,6 +1,7 @@
 import { BinanceAPI } from './exchanges/binance-api';
 import { BybitAPI } from './exchanges/bybit-api';
 import { KuCoinAPI } from './exchanges/kucoin-api';
+import { websocketManager } from './exchanges/websocket-manager';
 import { storage } from './storage';
 import type { Exchange, InsertMarketData, InsertExchangePrice } from '@shared/schema';
 
@@ -57,11 +58,22 @@ export class APIManager {
         return false;
     }
 
+    // Connect WebSocket for real-time updates
+    try {
+      await websocketManager.connectExchangeWebSocket(exchangeId, exchange.name, credentials);
+      console.log(`WebSocket connected for ${exchange.name} (ID: ${exchangeId})`);
+    } catch (error) {
+      console.error(`Failed to connect WebSocket for ${exchange.name}:`, error);
+      // Continue anyway - REST API still works
+    }
+
     console.log(`Successfully updated credentials for ${exchange.name}`);
     return true;
   }
 
   async removeExchangeCredentials(exchangeId: number): Promise<boolean> {
+    const exchange = await storage.getExchange(exchangeId);
+    
     await storage.updateExchange(exchangeId, {
       apiKey: null,
       apiSecret: null,
@@ -71,6 +83,16 @@ export class APIManager {
     this.binanceInstances.delete(exchangeId);
     this.bybitInstances.delete(exchangeId);
     this.kucoinInstances.delete(exchangeId);
+    
+    // Disconnect WebSocket
+    if (exchange) {
+      try {
+        await websocketManager.disconnectExchange(exchangeId, exchange.name);
+        console.log(`WebSocket disconnected for ${exchange.name} (ID: ${exchangeId})`);
+      } catch (error) {
+        console.error(`Failed to disconnect WebSocket for ${exchange.name}:`, error);
+      }
+    }
     
     // Clear exchange prices
     await storage.deleteExchangePricesForExchange(exchangeId);
